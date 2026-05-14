@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="/ai-clicker-/icons/icon-192x192.png">
+  <title>Clicker: Settlement Pioneer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script async src="https://www.vercount.one/js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+
+<body>
+  <!-- Ambient Glowing Background Effects -->
+  <div class="ambient-glow ambient-1"></div>
+  <div class="ambient-glow ambient-2"></div>
+
+  <header class="app-header">
+    <div class="logo-container">
+      <span class="logo-icon">⚡</span>
+      <h1>Clicker <span class="accent-text">Pioneer</span></h1>
+    </div>
+    <div class="system-status">
+      <div class="status-badge" id="cameraStatusBadge">
+        <span class="pulse-dot" id="statusDot"></span>
+        <span id="statusText">AI 離線</span>
+      </div>
+      <div class="difficulty-badge" id="diffBadge" style="display: flex; align-items: center; margin-right: 0.75rem; background: rgba(255,255,255,0.06); border: 1px solid var(--border-light); border-radius: 20px; padding: 0.35rem 0.8rem; font-size: 0.8rem; font-weight: 600; font-family: var(--font-sans); color: #e2e8f0; gap: 6px;">
+        <span>🏆 難度:</span><span id="diffBadgeVal" style="font-weight:800;">一般</span>
+      </div>
+      <div class="save-controls">
+        <button class="save-btn" id="btn-save" title="存檔至瀏覽器快取">
+          <span>💾</span><span class="save-btn-label">存檔</span>
+        </button>
+        <button class="save-btn" id="btn-export" title="下載 JSON 備份檔">
+          <span>📤</span><span class="save-btn-label">匯出</span>
+        </button>
+        <button class="save-btn save-btn-load" id="btn-load" title="從快取中讀取進度">
+          <span>📂</span><span class="save-btn-label">讀檔</span>
+        </button>
+        <button class="save-btn" id="btn-import" title="匯入外部 JSON 存檔">
+          <span>📥</span><span class="save-btn-label">匯入</span>
+        </button>
+        <button class="save-btn save-btn-reset" id="btn-reset" title="刪除存檔並重置">
+          <span>🗑️</span><span class="save-btn-label">重置</span>
+        </button>
+      </div>
+      <input type="file" id="import-file-input" accept=".json" style="display: none;">
+    </div>
+  </header>
+
+  <main class="game-container">
+    <!-- Page 1: tab-gather (採集 - 建設) -->
+    <section class="panel-column center-panel tab-column active" id="tab-gather" aria-label="採集操作">
+      <div class="glass-card resource-card">
+        <div class="card-header">
+          <h2>📊 資源存量</h2>
+        </div>
+        <div class="resource-grid">
+          <div class="resource-item res-wood">
+            <span class="res-icon">🪵</span>
+            <div class="res-details">
+              <label>木頭 (Wood)</label>
+              <span class="res-value">
+                <span class="woodCount">0</span><span class="res-limit-sep">/</span><span class="res-limit woodMax">100</span>
+              </span>
+            </div>
+          </div>
+          <div class="resource-item res-stone">
+            <span class="res-icon">🪨</span>
+            <div class="res-details">
+              <label>石頭 (Stone)</label>
+              <span class="res-value">
+                <span class="stoneCount">0</span><span class="res-limit-sep">/</span><span class="res-limit stoneMax">100</span>
+              </span>
+            </div>
+          </div>
+          <div class="resource-item res-food">
+            <span class="res-icon">🍞</span>
+            <div class="res-details">
+              <label>食物 (Food)</label>
+              <span class="res-value">
+                <span class="foodCount">30</span><span class="res-limit-sep">/</span><span class="res-limit foodMax">100</span>
+              </span>
+            </div>
+            <div class="res-rate foodDrainRate alert-text">+0.0/秒</div>
+          </div>
+          <div class="resource-item res-metal">
+            <span class="res-icon">🪙</span>
+            <div class="res-details">
+              <label>金屬 (Metal)</label>
+              <span class="res-value">
+                <span class="metalCount">0</span><span class="res-limit-sep">/</span><span class="res-limit metalMax">50</span>
+              </span>
+            </div>
+            <div class="res-rate metalGenRate">+0.0/秒</div>
+          </div>
+          <div class="resource-item res-energy">
+            <span class="res-icon">⚡</span>
+            <div class="res-details">
+              <label>能源 (Energy)</label>
+              <span class="res-value">
+                <span class="energyCount">0</span><span class="res-limit-sep">/</span><span class="res-limit energyMax">50</span>
+              </span>
+            </div>
+            <div class="res-rate energyGenRate">+0.0/秒</div>
+          </div>
+          <div class="resource-item res-money">
+            <span class="res-icon">💰</span>
+            <div class="res-details">
+              <label>金錢 (Money)</label>
+              <span class="res-value">
+                <span class="moneyCount">0</span><span class="res-limit-sep">/</span><span class="res-limit moneyMax">1000</span>
+              </span>
+            </div>
+            <div class="res-rate moneyGenRate">+0.0/秒</div>
+          </div>
+          <div class="resource-item res-knowledge">
+            <span class="res-icon">📚</span>
+            <div class="res-details">
+              <label>研究 (Knowledge)</label>
+              <span class="res-value">
+                <span class="knowledgeCount">0</span>
+              </span>
+            </div>
+            <div class="res-rate knowledgeGenRate">+0.0/秒</div>
+          </div>
+          <div class="resource-item res-mithril">
+            <span class="res-icon">💠</span>
+            <div class="res-details">
+              <label>秘銀幣 (Mithril)</label>
+              <span class="res-value">
+                <span class="mithrilCount">0</span>
+              </span>
+            </div>
+            <div class="res-rate mithrilGenRate">+0.00/秒</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-hub">
+        <div class="nodes-cluster" id="nodesContainer">
+          <div class="focus-badge">
+            <span class="pulse-ring-small"></span>
+            AI 自動鎖定：<span id="activeFocusText" class="accent-text">🌳 採集木頭</span>
+          </div>
+          <div class="gather-node active" id="node-wood" data-resource="wood" role="button" tabindex="0" aria-label="採集木頭">
+            <div class="node-ring"></div>
+            <div class="node-glow"></div>
+            <div class="node-body">
+              <span class="node-emoji">🌳</span>
+              <span class="node-title">採集木頭</span>
+            </div>
+          </div>
+          <div class="gather-node" id="node-stone" data-resource="stone" role="button" tabindex="0" aria-label="採集石頭">
+            <div class="node-ring"></div>
+            <div class="node-glow"></div>
+            <div class="node-body">
+              <span class="node-emoji">🪨</span>
+              <span class="node-title">採集石頭</span>
+            </div>
+          </div>
+        </div>
+        <div id="clickEffectsLayer"></div>
+      </div>
+    </section>
+
+    <!-- Page 2: tab-settlement (城市 - 建設整備) -->
+    <aside class="panel-column side-panel tab-column" id="tab-settlement" aria-label="城市建設">
+      <div class="glass-card resource-card">
+        <div class="card-header">
+          <h2>📊 資源存量</h2>
+        </div>
+        <div class="resource-grid">
+          <div class="resource-item res-wood">
+            <span class="res-icon">🪵</span>
+            <div class="res-details">
+              <label>木頭 (Wood)</label>
+              <span class="res-value">
+                <span class="woodCount">0</span><span class="res-limit-sep">/</span><span class="res-limit woodMax">100</span>
+              </span>
+            </div>
+          </div>
+          <div class="resource-item res-stone">
+            <span class="res-icon">🪨</span>
+            <div class="res-details">
+              <label>石頭 (Stone)</label>
+              <span class="res-value">
+                <span class="stoneCount">0</span><span class="res-limit-sep">/</span><span class="res-limit stoneMax">100</span>
+              </span>
+            </div>
+          </div>
+          <div class="resource-item res-food">
+            <span class="res-icon">🍞</span>
+            <div class="res-details">
+              <label>食物 (Food)</label>
+              <span class="res-value">
+                <span class="foodCount">30</span><span class="res-limit-sep">/</span><span class="res-limit foodMax">100</span>
+              </span>
+            </div>
+            <div class="res-rate foodDrainRate alert-text">+0.0/秒</div>
+          </div>
+          <div class="resource-item res-metal">
+            <span class="res-icon">🪙</span>
+            <div class="res-details">
+              <label>金屬 (Metal)</label>
+              <span class="res-value">
+                <span class="metalCount">0</span><span class="res-limit-sep">/</span><span class="res-limit metalMax">50</span>
+              </span>
+            </div>
+            <div class="res-rate metalGenRate">+0.0/秒</div>
+          </div>
+          <div class="resource-item res-energy">
+            <span class="res-icon">⚡</span>
+            <div class="res-details">
+              <label>能源 (Energy)</label>
+              <span class="res-value">
+                <span class="energyCount">0</span><span class="res-limit-sep">/</span><span class="res-limit energyMax">50</span>
+              </span>
+            </div>
+            <div class="res-rate energyGenRate">+0.0/秒</div>
+          </div>
+          <div class="resource-item res-money">
+            <span class="res-icon">💰</span>
+            <div class="res-details">
+              <label>金錢 (Money)</label>
+              <span class="res-value">
+                <span class="moneyCount">0</span><span class="res-limit-sep">/</span><span class="res-limit moneyMax">1000</span>
+              </span>
+            </div>
+            <div class="res-rate moneyGenRate">+0.0/秒</div>
+          </div>
+          <div class="resource-item res-knowledge">
+            <span class="res-icon">📚</span>
+            <div class="res-details">
+              <label>研究 (Knowledge)</label>
+              <span class="res-value">
+                <span class="knowledgeCount">0</span>
+              </span>
+            </div>
+            <div class="res-rate knowledgeGenRate">+0.0/秒</div>
+          </div>
+          <div class="resource-item res-mithril">
+            <span class="res-icon">💠</span>
+            <div class="res-details">
+              <label>秘銀幣 (Mithril)</label>
+              <span class="res-value">
+                <span class="mithrilCount">0</span>
+              </span>
+            </div>
+            <div class="res-rate mithrilGenRate">+0.00/秒</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card population-card">
+        <div class="card-header">
+          <h2>👷 人口與工人</h2>
+        </div>
+        <div class="pop-stats">
+          <div class="pop-stat-item">
+            <span class="pop-label">當前工人口</span>
+            <span class="pop-value"><span id="workerCount">0</span> / <span id="workerLimit">5</span></span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar" id="popLimitBar" style="width: 0%"></div>
+          </div>
+          <p class="survival-hint">⚠️ 警告：食物歸零時，工人將會開始流失。</p>
+        </div>
+      </div>
+
+      <div class="glass-card build-card city-base-card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+          <h2>🗺️ 城市領土規劃</h2>
+          <div class="city-stats-badge">
+            <span id="cityUsedSlots">0</span> / <span id="cityMaxSlots">6</span> 建地
+          </div>
+        </div>
+
+        <!-- City grid for dynamic rendering -->
+        <div class="city-grid-container" id="cityGridContainer"></div>
+
+        <!-- Expand Button Row -->
+        <div class="city-footer-actions">
+          <button class="action-btn expand-city-btn" id="btnExpandCity" disabled>
+            🚜 擴建土地 (<span id="expandCityCost">🪵 100 | 🪨 50</span>)
+          </button>
+        </div>
+
+        <!-- Dynamic Context-based Detail Interaction Modal Overlay -->
+        <div id="citySlotDetailOverlay" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 1600; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+          <div class="slot-detail-panel" id="citySlotDetailPanel" style="position: relative; background: linear-gradient(145deg, #1e293b, #0f172a); border: 2px solid rgba(255,255,255,0.12); border-radius: 24px; padding: 2.2rem 1.5rem 1.5rem 1.5rem; width: 92%; max-width: 460px; box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.85); animation: modalFadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);">
+            
+            <!-- Close Button -->
+            <button id="closeCityDetailBtn" style="position: absolute; top: 14px; right: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #94a3b8; font-size: 1.2rem; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">✕</button>
+
+            <!-- Construct options (visible when empty slot clicked) -->
+            <div class="slot-construct-list" id="slotConstructList" style="display: none;">
+              <h3 style="margin-bottom: 0.5rem; font-size: 1.1rem; font-weight: 800; text-align: center; color: #f1f5f9; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.5rem;">🔨 城市建設選單</h3>
+              
+              <!-- Category 1: Capacity & functional limits -->
+              <div class="construct-section-title">📦 擴展機能與容量上限</div>
+              <div class="build-options-grid" style="margin-top: 0.25rem;">
+                <button class="opt-build-btn" data-type="cabin">
+                  <span class="opt-icon">🛖</span>
+                  <span class="opt-title">小木屋</span>
+                  <span class="opt-cost">🪵 25</span>
+                </button>
+                <button class="opt-build-btn" data-type="warehouse">
+                  <span class="opt-icon">📦</span>
+                  <span class="opt-title">臨時儲藏</span>
+                  <span class="opt-cost">🪵 50 | 🪨 30</span>
+                </button>
+                <button class="opt-build-btn" data-type="battery">
+                  <span class="opt-icon">🔋</span>
+                  <span class="opt-title">蓄電池組</span>
+                  <span class="opt-cost">🪨 60 | 🪙 40</span>
+                </button>
+                <button class="opt-build-btn" data-type="bank">
+                  <span class="opt-icon">🏦</span>
+                  <span class="opt-title">城鎮金庫</span>
+                  <span class="opt-cost">🪨 60 | 🪙 30</span>
+                </button>
+              </div>
+
+              <!-- Category 2: Active production & automation -->
+              <div class="construct-section-title" style="border-left-color: #eab308 !important;">⚙️ 資源生產與自動化</div>
+              <div class="build-options-grid" style="margin-top: 0.25rem;">
+                <button class="opt-build-btn" data-type="farm">
+                  <span class="opt-icon">🌾</span>
+                  <span class="opt-title">菜園</span>
+                  <span class="opt-cost">🪵 30 | 🪨 15</span>
+                </button>
+                <button class="opt-build-btn" data-type="smelter">
+                  <span class="opt-icon">🪙</span>
+                  <span class="opt-title">簡易熔爐</span>
+                  <span class="opt-cost">🪵 40 | 🪨 50</span>
+                </button>
+                <button class="opt-build-btn" data-type="powerPlant">
+                  <span class="opt-icon">⚡</span>
+                  <span class="opt-title">發電機</span>
+                  <span class="opt-cost">🪨 80 | 🪙 20</span>
+                </button>
+                <button class="opt-build-btn" data-type="school">
+                  <span class="opt-icon">📚</span>
+                  <span class="opt-title">地方學堂</span>
+                  <span class="opt-cost">🪵 80 | 🪨 60</span>
+                </button>
+                <button class="opt-build-btn" data-type="autoWood" style="display: none;">
+                  <span class="opt-icon">🚜</span>
+                  <span class="opt-title">自動伐木機</span>
+                  <span class="opt-cost">🪙 100 | 🪵 100</span>
+                </button>
+                <button class="opt-build-btn" data-type="autoMine" style="display: none;">
+                  <span class="opt-icon">⛏️</span>
+                  <span class="opt-title">自動採礦機</span>
+                  <span class="opt-cost">🪙 100 | 🪨 100</span>
+                </button>
+                <button class="opt-build-btn" data-type="autoHarvest" style="display: none;">
+                  <span class="opt-icon">🛸</span>
+                  <span class="opt-title">智能農艙</span>
+                  <span class="opt-cost">🪙 100 | 🍞 100</span>
+                </button>
+                <button class="opt-build-btn" data-type="autoStudy" style="display: none;">
+                  <span class="opt-icon">🤖</span>
+                  <span class="opt-title">自動科研儀</span>
+                  <span class="opt-cost">🪙 500 | 📚 500</span>
+                </button>
+                <button class="opt-build-btn" data-type="mithrilFactory" style="display: none;">
+                  <span class="opt-icon">💠</span>
+                  <span class="opt-title">秘銀工廠</span>
+                  <span class="opt-cost">💰 500 | 🪙 200 | ⚡ 50</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Upgrade/Demolish options (visible when occupied slot clicked) -->
+            <div class="slot-manage-ui" id="slotManageUi" style="display: none;">
+              <h3 style="margin-bottom: 1rem; font-size: 1rem; font-weight: 800; text-align: center; color: #fde047; opacity:0.9;">⚙️ 管理該區域設施</h3>
+              <div class="building-header-row" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 1rem; border-radius: 16px; margin-bottom: 1rem;">
+                <div>
+                  <h3 id="manageBuildingName" style="font-size: 1.2rem; font-weight: 800; color: #ffffff; margin-bottom: 0.2rem;">🛖 [Lv.1] 小木屋</h3>
+                  <p id="manageBuildingDesc" style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.2rem; margin-bottom: 0; line-height: 1.4;">提供 3 人口上限</p>
+                </div>
+                <div id="manageBuildingEffect" style="font-size: 0.85rem; font-weight: 800; color: #34d399; background: rgba(52, 211, 153, 0.15); padding: 0.4rem 0.8rem; border-radius: 8px; text-align:center; white-space:nowrap; align-self:center;">
+                  +3 人口
+                </div>
+              </div>
+              <div class="building-actions-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+                <button class="manage-action-btn upgrade-btn" id="btnUpgradeBuilding" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0.75rem; font-size: 1rem; height:auto;">
+                  <span style="font-weight:800;">🔼 點擊升級</span>
+                  <span id="upgradeCostText" style="font-size:0.75rem; font-weight:500; color: rgba(255,255,255,0.7); margin-top:2px;">🪵 50</span>
+                </button>
+                <button class="manage-action-btn demolish-btn" id="btnDemolishBuilding" style="display: flex; align-items: center; justify-content: center; padding: 0.75rem; font-size: 1rem; height:auto; font-weight:800;">
+                  🗑️ 拆除建築
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card dispatch-card" style="display: flex; flex-direction: column; max-height: 80vh;">
+        <div class="card-header">
+          <h2>👩‍💼 人力資源調度中心</h2>
+        </div>
+        <p class="card-desc">管理城鎮全體居民。在此進行人員招募、轉職考核、工作指派以及重傷人員療養調度。</p>
+
+        <div class="dispatch-pool-bar">
+          <span class="pool-label">城鎮人口：</span>
+          <span class="pool-value alert-text"><span id="popCountDisplay">0</span> / <span id="popLimitDisplay">5</span></span>
+        </div>
+
+        <button class="build-btn" id="btn-hire-resident" style="width: 100%; margin-bottom: 1rem;" disabled>
+          <div class="build-btn-info">
+            <span class="build-btn-title">⛺ 在流浪之家招募流浪者</span>
+            <span class="build-btn-cost">🍞 20 食物 | 💰 5 金</span>
+          </div>
+        </button>
+
+        <div class="roster-container" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem;" id="populationRoster">
+          <div class="empty-inv" style="text-align: center; color: #94a3b8; font-size: 0.9rem; padding: 1rem;">
+            城鎮空無一人，請招募流浪者！
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card research-card" id="researchCard" style="display: none; margin-top: 1rem;">
+        <div class="card-header">
+          <h2>🔬 學院研究中心</h2>
+        </div>
+        <p class="card-desc">利用學者的研究成果解鎖先進的城邦科技。</p>
+        <div class="dispatch-pool-bar" style="border-color: #3b82f6; color: #60a5fa;">
+          <span class="pool-label">累積知識：</span>
+          <span class="pool-value" id="knowledgeVal">0</span>
+        </div>
+        <div class="dispatch-list" style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+          <!-- 第一階段：基礎機制與蒸汽工業 -->
+          <button class="build-btn" id="btnTechHero" style="width: 100%;" disabled>
+            <div class="build-btn-info">
+              <span class="build-btn-title">🛡️ 研發【冒險者特許證】(英雄開啟)</span>
+              <span class="build-btn-cost">📚 100 知識 | 🪙 50 金</span>
+            </div>
+            <span class="build-btn-count" id="techHeroStatus">未解鎖</span>
+          </button>
+
+          <button class="build-btn" id="btnTechAppraisal" style="width: 100%;" disabled>
+            <div class="build-btn-info">
+              <span class="build-btn-title">🔮 研發【鑑定水晶球】(屬性解鎖)</span>
+              <span class="build-btn-cost">📚 250 知識 | 🪙 150 金</span>
+            </div>
+            <span class="build-btn-count" id="techAppraisalStatus">未解鎖</span>
+          </button>
+
+          <button class="build-btn" id="btnTechHuntLv4" style="width: 100%;" disabled>
+            <div class="build-btn-info">
+              <span class="build-btn-title">⚙️ 研發【蒸汽齒輪革命】(討伐 4-6)</span>
+              <span class="build-btn-cost">📚 400 知識 | 🪙 600 金</span>
+            </div>
+            <span class="build-btn-count" id="techHuntLv4Status">未解鎖</span>
+          </button>
+
+          <button class="build-btn" id="btnTechAutomation" style="width: 100%;" disabled>
+            <div class="build-btn-info">
+              <span class="build-btn-title">🏭 研發【自動生產協議】(解鎖自動採集)</span>
+              <span class="build-btn-cost">📚 1000 知識 | 🪙 1500 金 | ⚡ 200 電</span>
+            </div>
+            <span class="build-btn-count" id="techAutomationStatus">未解鎖</span>
+          </button>
+
+          <button class="build-btn" id="btnTechTemple" style="width: 100%;" disabled>
+            <div class="build-btn-info">
+              <span class="build-btn-title">🏛️ 研發【古老轉職神殿】(解鎖神殿分頁)</span>
+              <span class="build-btn-cost">📚 1500 知識 | 🪙 2500 金 | ⚡ 100 電</span>
+            </div>
+            <span class="build-btn-count" id="techTempleStatus">未解鎖</span>
+          </button>
+
+          <!-- 第二階段：人工智慧與量子時代 -->
+          <button class="build-btn" id="btnTechAutoStudy" style="width: 100%;" disabled>
+            <div class="build-btn-info">
+              <span class="build-btn-title">🧠 研發【自我迭代算法】(解鎖自動科研)</span>
+              <span class="build-btn-cost">📚 2500 知識 | 🪙 4000 金 | ⚡ 500 電</span>
+            </div>
+            <span class="build-btn-count" id="techAutoStudyStatus">未解鎖</span>
+          </button>
+
+          <button class="build-btn" id="btnTechSecretLv4" style="width: 100%;" disabled>
+            <div class="build-btn-info">
+              <span class="build-btn-title">🌐 研發【量子算力特區】(密商 4-5)</span>
+              <span class="build-btn-cost">📚 6000 知識 | 🪙 10000 金 | ⚡ 1200 電</span>
+            </div>
+            <span class="build-btn-count" id="techSecretLv4Status">未解鎖</span>
+          </button>
+
+          <!-- 第三階段：深空與奇點全知 -->
+          <button class="build-btn" id="btnTechHuntLv7" style="width: 100%;" disabled>
+            <div class="build-btn-info">
+              <span class="build-btn-title">🚀 研發【反物質星航力】(討伐 7-10)</span>
+              <span class="build-btn-cost">📚 18000 知識 | 🪙 35000 金 | ⚡ 4000 電</span>
+            </div>
+            <span class="build-btn-count" id="techHuntLv7Status">未解鎖</span>
+          </button>
+
+          <button class="build-btn" id="btnTechSecretLv7" style="width: 100%;" disabled>
+            <div class="build-btn-info">
+              <span class="build-btn-title">🪐 研發【歐米茄全知網】(密商 6-7)</span>
+              <span class="build-btn-cost">📚 50000 知識 | 🪙 100000 金 | ⚡ 10000 電</span>
+            </div>
+            <span class="build-btn-count" id="techSecretLv7Status">未解鎖</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Page 3: tab-combat (出征 - 戰鬥) -->
+    <aside class="panel-column side-panel tab-column" id="tab-combat" aria-label="出征戰鬥">
+      <div class="glass-card rpg-guild-card locked" id="rpgGuildCard">
+        <div class="rpg-lock-overlay" id="rpgLockOverlay">
+          <span class="lock-icon">⚔️ 🔒</span>
+          <h3>冒險者公會尚未成立</h3>
+          <p>在學院中研發「英雄招募令」以開啟 RPG 打怪冒險！</p>
+        </div>
+
+        <div class="rpg-unlocked-content" style="display: none;">
+          <div class="battle-viewport">
+            <div class="battle-field">
+              <div class="party-side" id="partyGroup"></div>
+              <div class="battle-versus">VS</div>
+              <div class="enemy-side" id="enemyGroup"></div>
+            </div>
+            <div class="battle-log" id="battleLog">
+              <div>🚩 準備出征，打造裝備以提升屬性！</div>
+            </div>
+          </div>
+
+          <div class="rpg-sub-tabs">
+            <button class="rpg-sub-tab active" data-rpg-tab="quest-panel">🗺️ 出征任務</button>
+          </div>
+
+          <div class="rpg-panel-container">
+            <div class="rpg-panel active" id="rpg-quest-panel">
+              <div class="deploy-config">
+                <h5>1. 當前派遣編制 (已招募英雄自動出征)</h5>
+                <div id="partyStatusList" style="display: flex; gap: 0.5rem; margin-top: 0.5rem; font-size: 0.9rem; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 8px; color: #94a3b8;">
+                  ⏳ 尚未招募任何英雄，請先前往公會招募。
+                </div>
+              </div>
+              <div class="quest-action-zone">
+                <!-- Boss Invasion Countdown Alert Banner -->
+                <div id="bossInvasionTimer" style="display: none; margin-bottom: 0.75rem; padding: 0.6rem 0.75rem; border-radius: 8px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); text-align: center; animation: pulse 2s infinite;">
+                  <span style="color: #f87171; font-weight: bold; font-size: 0.85rem;">⚠️ 巨獸入侵倒數：</span>
+                  <span id="bossCountdownText" style="color: #ef4444; font-weight: 800; font-family: monospace; font-size: 1.05rem; text-shadow: 0 0 4px rgba(239,68,68,0.5);">7天 00:00:00</span>
+                </div>
+
+                <h5>2. 選擇討伐對象</h5>
+                <div class="quest-btns-row">
+                  <button class="quest-go-btn btn-hunt" id="btnQuestHunt">⚔️ 討伐可愛小怪</button>
+                  <button class="quest-go-btn btn-boss" id="btnQuestBoss">💀 挑戰終極巨獸</button>
+                  <button class="quest-go-btn btn-retreat" id="btnQuestRetreat" disabled>🏳️ 撤退</button>
+                </div>
+              </div>
+              <div id="huntSelectRow" style="display:none; margin-top: 0.5rem; margin-bottom: 0.5rem;">
+                <select id="targetHuntLevel">
+                  <option value="1">🐣 Lv.1 可愛史萊姆</option>
+                  <option value="2">🐣 Lv.2 野蠻哥布林</option>
+                  <option value="3">🐣 Lv.3 瘋狂野豬</option>
+                  <option value="4">⚔️ Lv.4 骷髏小兵</option>
+                  <option value="5">⚔️ Lv.5 森林半人馬</option>
+                  <option value="6">⚔️ Lv.6 地獄犬幼犬</option>
+                  <option value="7">🔥 Lv.7 熔岩蜥蜴</option>
+                  <option value="8">🔥 Lv.8 暗影刺客</option>
+                  <option value="9">🔥 Lv.9 狂暴雙頭魔</option>
+                  <option value="10">👑 Lv.10 超巨型史萊姆王 (終極試煉)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card tracking-card">
+        <div class="card-header">
+          <h2>📷 AI 手勢偵測</h2>
+        </div>
+        <p class="card-desc">透過<b>手勢</b>施放戰鬥技能！切換「布/拳/指」手勢來觸發不同的技能詠唱，消滅敵人！</p>
+
+        <div class="vision-viewport-wrapper">
+          <div class="vision-viewport">
+            <div class="loading-overlay" id="modelLoader">
+              <div class="loading-spinner"></div>
+              <span>載入 MediaPipe 模型中...</span>
+            </div>
+            <video id="webcam" autoplay playsinline muted></video>
+            <canvas id="outputCanvas"></canvas>
+          </div>
+
+          <div class="velocity-meter">
+            <div class="meter-label">詠唱施法進度</div>
+            <div class="meter-track">
+              <div class="meter-fill" id="velocityBar" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-actions">
+          <button id="webcamToggleBtn" class="primary-btn action-btn" disabled>
+            <span class="btn-icon">🎥</span> 開啟視訊鏡頭
+          </button>
+        </div>
+      </div>
+
+      <div class="glass-card info-card">
+        <div class="card-header">
+          <h2>ℹ️ 玩法說明</h2>
+        </div>
+        <ul class="rules-list">
+          <li>⚔️ **戰鬥手勢**：透過搖晃或交替「布/拳/剪/指」手勢進行詠唱，施放強大法術！</li>
+          <li>🌳 **採集系統**：木頭與石頭純粹透過滑鼠或觸控點擊進行採集，回歸原始樂趣。</li>
+          <li>🏗️ **建設系統**：在「城市」頁面點擊建設按鈕，自動生產食物、金屬、能源等資源。</li>
+          <li>👥 **英雄整備**：在「英雄」頁面管理英雄招募、裝備購買與背包管理。</li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Page 4: tab-hero (英雄 - 戰鬥整備) -->
+    <aside class="panel-column side-panel tab-column" id="tab-hero" aria-label="英雄整備">
+      <div class="glass-card" id="dispatchRpgCard" style="display: none;">
+        <div class="rpg-sub-tabs">
+          <button class="rpg-sub-tab active" data-rpg-tab="hero-sheet">👥 英雄/技能</button>
+          <button class="rpg-sub-tab" data-rpg-tab="gear-shop">🏪 武器商店</button>
+          <button class="rpg-sub-tab" data-rpg-tab="secret-shop" style="color: #facc15; font-weight: bold;">✨ 神秘商店</button>
+          <button class="rpg-sub-tab" data-rpg-tab="inventory-panel">🎒 背包 (<span id="invCount">0</span>)</button>
+        </div>
+        <div class="rpg-panel-container">
+          <div class="rpg-panel active" id="rpg-hero-sheet">
+            <div class="heroes-wrapper" id="guildRoster">
+              <!-- Dynamically populated by JS -->
+            </div>
+            <div class="combat-skill-dock" id="skillDock" style="display:none;">
+              <div class="dock-title">🖐️ 手勢詠唱進度 (切換布/拳/指來施法)</div>
+              <div class="skills-grid" id="gestureSkillGrid">
+                <!-- Dynamically populated skill progress bars based on party members -->
+              </div>
+            </div>
+          </div>
+
+          <div class="rpg-panel" id="rpg-gear-shop">
+            <div class="shop-controls">
+              <label>選擇購買等級：</label>
+              <select id="shopLevelSelect">
+                <option value="1">Lv 1 (💰 100)</option>
+                <option value="2">Lv 2 (💰 500)</option>
+                <option value="3">Lv 3 (💰 2000)</option>
+                <option value="4">Lv 4 (💰 8000)</option>
+                <option value="5">Lv 5 (💰 25000)</option>
+                <option value="6">Lv 6 (💰 75000)</option>
+                <option value="7">Lv 7 (💰 250000)</option>
+              </select>
+            </div>
+            <div class="shop-items-grid">
+              <button class="buy-eq-btn" data-slot="rhand">🗡️ 買武器</button>
+              <button class="buy-eq-btn" data-slot="lhand">🛡️ 買副手</button>
+              <button class="buy-eq-btn" data-slot="helm">🪖 買頭盔</button>
+              <button class="buy-eq-btn" data-slot="body">🥋 買衣服</button>
+              <button class="buy-eq-btn" data-slot="pants">👖 買褲子</button>
+              <button class="buy-eq-btn" data-slot="shoes">👞 買鞋子</button>
+            </div>
+            <p class="shop-note">* 商店僅販售純白板裝備。隨機附帶強大額外屬性的彩色神裝需透過擊殺怪物掉落！</p>
+          </div>
+
+          <div class="rpg-panel" id="rpg-secret-shop">
+            <div class="shop-controls" style="border-bottom: 1px solid rgba(234, 179, 8, 0.2); padding-bottom: 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+              <div>
+                <label style="color: #facc15; font-weight: 600;">🔮 貨架裝備等級：</label>
+                <select id="secretShopLevelSelect" style="background: rgba(15, 23, 42, 0.8); border: 1.5px solid #eab308; color: #fff; padding: 0.3rem 0.6rem; border-radius: 6px;">
+                  <option value="1">Lv 1 等級貨架</option>
+                  <option value="2">Lv 2 等級貨架</option>
+                  <option value="3">Lv 3 等級貨架</option>
+                  <option value="4">Lv 4 等級貨架</option>
+                  <option value="5">Lv 5 等級貨架</option>
+                  <option value="6">Lv 6 等級貨架</option>
+                  <option value="7">Lv 7 等級貨架</option>
+                </select>
+              </div>
+              <button id="btnRefreshSecretShop" class="btn-danger" style="background: linear-gradient(135deg, #7e22ce, #b45309); border: 1px solid #eab308; color: #fff; font-weight: bold; box-shadow: 0 0 10px rgba(234,179,8,0.3);">
+                🔁 刷新貨架 (<span id="secretRefreshCostText">💠 15</span>)
+              </button>
+            </div>
+            <div class="secret-shop-grid" id="secretShopGrid">
+              <!-- Filled by JS -->
+            </div>
+            <p class="shop-note" style="color:#f59e0b;">* 神秘商店中機率出現「稀有、史詩、傳說」品質裝備，價格受品質倍率與等級雙重影響，且購買後該架位會完售！</p>
+          </div>
+
+          <div class="rpg-panel" id="rpg-inventory-panel">
+            <div class="inv-grid" id="inventoryContainer">
+              <div class="empty-inv">背包是空的，快去打寶吧！</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Page 5: tab-temple (轉職神殿) -->
+    <aside class="panel-column side-panel tab-column" id="tab-temple" aria-label="轉職神殿">
+      <div class="glass-card temple-card" style="display: flex; flex-direction: column; max-height: 80vh;">
+        <div class="card-header">
+          <h2>🏛️ 轉職與晉升神殿</h2>
+        </div>
+        <p class="card-desc">在此沐浴聖光，突破等級界限或覺醒高等職業！<br><span style="color:#e2e8f0; font-weight:bold;">* 未滿 Lv.5 的流浪者無法開啟轉職。</span></p>
+        
+        <div class="temple-roster-container" id="templeRoster" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem; padding-right: 4px;">
+          <div class="empty-inv" style="text-align: center; color: #94a3b8; font-size: 0.9rem; padding: 1rem;">
+            神殿中目前沒有等待轉職的冒險者。
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Mobile Navigation Bar -->
+  <nav class="mobile-navbar">
+    <button class="nav-item active" data-target="tab-gather">
+      <span class="nav-icon">⚒️</span>
+      <span class="nav-label">採集</span>
+    </button>
+    <button class="nav-item" data-target="tab-settlement">
+      <span class="nav-icon">🏘️</span>
+      <span class="nav-label">城市</span>
+    </button>
+    <button class="nav-item" data-target="tab-combat">
+      <span class="nav-icon">⚔️</span>
+      <span class="nav-label">出征</span>
+    </button>
+    <button class="nav-item" data-target="tab-hero">
+      <span class="nav-icon">👥</span>
+      <span class="nav-label">英雄</span>
+    </button>
+    <button class="nav-item" id="nav-temple" data-target="tab-temple" style="display: none;">
+      <span class="nav-icon">🏛️</span>
+      <span class="nav-label">神殿</span>
+    </button>
+  </nav>
+
+  <footer class="app-footer">
+    <div class="busuanzi-stats">
+      <span id="busuanzi_container_site_pv" style="display:none">
+        <span class="stat-item"><i class="fa-solid fa-eye"></i> 總瀏覽量 <span id="busuanzi_value_site_pv"></span></span>
+      </span>
+      <span class="stat-divider">|</span>
+      <span id="busuanzi_container_site_uv" style="display:none">
+        <span class="stat-item"><i class="fa-solid fa-user"></i> 訪客數 <span id="busuanzi_value_site_uv"></span></span>
+      </span>
+    </div>
+    <p>AI Clicker Prototype © 2026 | Built with MediaPipe Tasks-Vision</p>
+  </footer>
+
+  <!-- Difficulty Selection Modal -->
+  <div id="difficultyModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(6px);">
+    <div class="glass-card" style="width: 440px; padding: 2.5rem 2rem; text-align: center; background: #0f172a; border: 2px solid var(--primary-glow); box-shadow: 0 0 30px rgba(129, 140, 248, 0.3);">
+      <h2 style="color: #60a5fa; margin-bottom: 0.5rem; font-size: 1.8rem; font-weight: 800; letter-spacing: 1px;">🏆 選擇冒險難度</h2>
+      <p style="color: #94a3b8; margin-bottom: 2rem; font-size: 0.92rem; line-height: 1.5;">難度將決定基礎採集率、魔物的戰鬥數值與報酬。<br><span style="color: #fde047;">※ 此設定將鎖定在此存檔中，中途無法修改。</span></p>
+      
+      <div style="display: flex; flex-direction: column; gap: 1rem;">
+        <button class="build-btn" onclick="setDifficulty('test')" style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); border: none; padding: 0.9rem; font-weight: 700; color: white;">
+          🧪 測試模式 (資源 x10.0 / 魔物極弱 / 測試專用)
+        </button>
+        <button class="build-btn" onclick="setDifficulty('easy')" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none; padding: 0.9rem; font-weight: 700; color: white;">
+          🌱 簡單模式 (資源 x2.0 / 魔物溫和 / 適合測試)
+        </button>
+        <button class="build-btn" onclick="setDifficulty('normal')" style="background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); border: none; padding: 0.9rem; font-weight: 700; color: white;">
+          ⚔️ 一般模式 (標準資源 / 標準強度)
+        </button>
+        <button class="build-btn" onclick="setDifficulty('hard')" style="background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); border: none; padding: 0.9rem; font-weight: 700; color: white;">
+          🔥 困難模式 (資源 x0.7 / 魔物攻防提升)
+        </button>
+        <button class="build-btn" onclick="setDifficulty('nightmare')" style="background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%); border: none; padding: 0.9rem; font-weight: 700; color: white;">
+          💀 惡夢模式 (資源 x0.4 / 魔物毀滅性強悍)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calculus Exam Modal -->
+  <div id="examModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+    <div class="glass-card" style="width: 400px; padding: 2rem; text-align: center; background: #1e293b;">
+      <h2 style="color: #fde047; margin-bottom: 1rem;">📖 轉職殿微積分測驗</h2>
+      <p style="color: #e2e8f0; margin-bottom: 1.5rem;">想突破等級 9，必須具備基礎的微積分知識。<br>請問：變數 x 對 x 進行微分的結果是多少？</p>
+      
+      <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem;">
+        <button class="build-btn" onclick="submitExam(0)">選項 0</button>
+        <button class="build-btn" onclick="submitExam(1)">選項 1</button>
+        <button class="build-btn" onclick="submitExam(2)">選項 2</button>
+        <button class="build-btn" onclick="submitExam(3)">選項 3</button>
+      </div>
+      
+      <button class="ctrl-btn" onclick="document.getElementById('examModal').style.display = 'none'" style="background: #ef4444;">放棄測驗</button>
+    </div>
+  </div>
+  
+  <!-- Equip Choice Modal -->
+  <div id="equipModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+    <div class="glass-card" style="width: 400px; padding: 2rem; text-align: center; background: #1e293b;">
+      <h2 style="color: #60a5fa; margin-bottom: 0.5rem;">🛡️ 選擇裝備對象</h2>
+      <p id="equipItemName" style="color: #94a3b8; margin-bottom: 1.5rem; font-size: 0.9rem; font-style: italic;"></p>
+      
+      <div id="equipChoicesList" style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem; max-height: 300px; overflow-y: auto; padding-right: 5px;">
+        <!-- Dynamically filled -->
+      </div>
+      
+      <button class="ctrl-btn" onclick="document.getElementById('equipModal').style.display = 'none'" style="background: #ef4444; width: 100%;">取消</button>
+    </div>
+  </div>
+
+  <!-- Unequip Detail Modal -->
+  <div id="unequipModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1100; justify-content: center; align-items: center; backdrop-filter: blur(3px);">
+    <div class="glass-card" id="unequipCard" style="width: 360px; padding: 2rem; text-align: center; background: linear-gradient(145deg, #1e293b, #0f172a); border: 2px solid #475569; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);">
+      <div id="unequipItemIcon" style="font-size: 2.5rem; margin-bottom: 0.5rem; text-shadow: 0 4px 10px rgba(0,0,0,0.3);">⚔️</div>
+      <h2 id="unequipItemTitle" style="color: #f8fafc; margin-bottom: 0.25rem; font-size: 1.4rem; font-weight: 800;">神聖大劍</h2>
+      <div id="unequipItemRarity" style="font-size: 0.85rem; font-weight: bold; margin-bottom: 1.2rem; letter-spacing: 1px; text-transform: uppercase;">[史詩]</div>
+      
+      <div class="unequip-details" style="background: rgba(0,0,0,0.25); border-radius: 12px; padding: 1.25rem; text-align: left; font-size: 0.95rem; color: #cbd5e1; margin-bottom: 1.5rem; border: 1px solid rgba(255,255,255,0.05);">
+        <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+          <span style="color:#94a3b8;">🔹 裝備部位</span>
+          <span id="unequipItemSlot" style="color: #f1f5f9; font-weight:600;">右手</span>
+        </div>
+        <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+          <span style="color:#94a3b8;">🔹 裝備等級</span>
+          <span id="unequipItemLevel" style="color: #f1f5f9; font-weight:600;">Lv.5</span>
+        </div>
+        <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 0.75rem; margin-top: 0.75rem; display: flex; justify-content: space-between; font-weight: bold; color: #e2e8f0;">
+          <span>⚡ 屬性加成</span>
+          <span id="unequipItemStats" style="color: #facc15; font-size: 1.05rem; text-shadow: 0 0 4px rgba(250,204,21,0.3);">物攻 +35</span>
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 0.75rem;">
+        <button id="btnConfirmUnequip" class="ctrl-btn" style="background: linear-gradient(135deg, #ef4444, #dc2626); flex: 1; font-weight: 700; padding: 0.6rem; border-radius: 10px; border: none;">🔻 脫下裝備</button>
+        <button class="ctrl-btn" onclick="document.getElementById('unequipModal').style.display = 'none'" style="background: #334155; flex: 1; font-weight: 600; padding: 0.6rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); color:#e2e8f0;">返回</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast-notification" id="toastNotification"></div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>
