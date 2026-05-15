@@ -21,7 +21,7 @@
     "slaveRange": [0.8, 2.5]
   },
   "eqSpecs": {
-    "price": [0, 100, 400, 1500, 5000, 15000, 40000, 120000],
+    "price": [0, 100, 400, 1500, 5000, 15000, 40000, 120000, 360000, 1000000, 3000000],
     "slots": {
       "rhand": { "name": "右手武器", "mainStat": "atk", "scale": 2.0 },
       "lhand": { "name": "左手武器", "mainStat": "def", "scale": 1.5 },
@@ -37,12 +37,13 @@
       "epic":   { "name": "史詩", "color": "#a855f7", "extraStats": 3, "mult": 2.0 },
       "legend": { "name": "傳說", "color": "#eab308", "extraStats": 4, "mult": 3.0 }
     },
-    "statList": ["hp", "mp", "atk", "def", "matk", "mdef", "spd", "lifesteal", "mlifesteal", "hit", "evasion", "critRate", "critDmg", "lucky"],
+    "statList": ["hp", "mp", "atk", "def", "matk", "mdef", "spd", "lifesteal", "mlifesteal", "hit", "evasion", "critRate", "critDmg", "lucky", "pdr", "mdr", "udr"],
     "statNames": {
       "hp": "生命值", "mp": "魔力值", "atk": "攻擊力", "def": "防禦力",
       "matk": "魔法攻擊", "mdef": "魔法防禦", "spd": "速度",
       "lifesteal": "物理吸血", "mlifesteal": "魔法吸血",
-      "hit": "命中", "evasion": "閃避", "critRate": "暴擊率", "critDmg": "暴擊傷害", "lucky": "幸運"
+      "hit": "命中", "evasion": "閃避", "critRate": "暴擊率", "critDmg": "暴擊傷害", "lucky": "幸運",
+      "pdr": "物理免傷", "mdr": "魔法免傷", "udr": "全能免傷"
     }
   },
   "heroes": {
@@ -188,6 +189,23 @@
         "reqKnowledge": 50000,
         "reqMoney": 100000,
         "reqEnergy": 10000
+      },
+      "clickFoodTech": {
+        "reqKnowledge": 50,
+        "reqMoney": 30
+      },
+      "clickMetalTech": {
+        "reqKnowledge": 200,
+        "reqMoney": 150
+      },
+      "clickMoneyTech": {
+        "reqKnowledge": 500,
+        "reqMoney": 400
+      },
+      "doubleClickTech": {
+        "reqKnowledge": 1000,
+        "reqMoney": 800,
+        "reqEnergy": 100
       }
     },
     "mobs": {
@@ -213,20 +231,20 @@
       "greed": {
         "name": "👹 貪之巨獸 (終極)",
         "avatar": "👹",
-        "hp": 8000, "maxHp": 8000, "atk": 200, "def": 100, "matk": 40, "mdef": 80, "spd": 1.3,
-        "rewardExp": 2500, "rewardMoney": 15000
+        "hp": 5000000, "maxHp": 5000000, "atk": 9000, "def": 4500, "matk": 1000, "mdef": 4000, "spd": 1.3,
+        "rewardExp": 2500, "rewardMoney": 50000
       },
       "anger": {
         "name": "🔥 嗔之巨獸 (終極)",
         "avatar": "🔥",
-        "hp": 6000, "maxHp": 6000, "atk": 350, "def": 60, "matk": 200, "mdef": 40, "spd": 1.6,
-        "rewardExp": 2500, "rewardMoney": 8000
+        "hp": 4500000, "maxHp": 4500000, "atk": 10000, "def": 3500, "matk": 8500, "mdef": 3500, "spd": 2.0,
+        "rewardExp": 2500, "rewardMoney": 40000
       },
       "ignorance": {
         "name": "🦑 癡之巨獸 (終極)",
         "avatar": "🦑",
-        "hp": 12000, "maxHp": 12000, "atk": 150, "def": 150, "matk": 150, "mdef": 150, "spd": 1.1,
-        "rewardExp": 2500, "rewardMoney": 8000
+        "hp": 10000000, "maxHp": 10000000, "atk": 6000, "def": 8000, "matk": 6000, "mdef": 8000, "spd": 1.2,
+        "rewardExp": 2500, "rewardMoney": 40000
       }
     }
   }

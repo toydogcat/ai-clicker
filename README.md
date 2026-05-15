@@ -1,2 +1,2 @@
-# ai-clicker
-The premium RPG [clicker game](https://toydogcat.github.io/ai-clicker/).
+# ai-clicker-
+The [click game](https://toydogcat.github.io/ai-clicker-/).

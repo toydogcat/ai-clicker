@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
-  base: '/ai-clicker/',
+  base: '/ai-clicker-/',
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',
@@ -14,7 +14,7 @@ export default defineConfig({
         theme_color: '#0f172a',
         background_color: '#0f172a',
         display: 'standalone',
-        start_url: '/ai-clicker/',
+        start_url: '/ai-clicker-/',
         icons: [
           {
             src: 'icons/icon-192x192.png',

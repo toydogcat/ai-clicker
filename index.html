@@ -15,6 +15,10 @@
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@500;700&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- KaTeX CSS & JS for beautiful dynamic LaTeX math equations rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
   <script async src="https://www.vercount.one/js" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="/src/style.css">
 </head>
@@ -167,6 +171,30 @@
             <div class="node-body">
               <span class="node-emoji">🪨</span>
               <span class="node-title">採集石頭</span>
+            </div>
+          </div>
+          <div class="gather-node" id="node-food" data-resource="food" role="button" tabindex="0" aria-label="採集食物" style="display: none;">
+            <div class="node-ring"></div>
+            <div class="node-glow"></div>
+            <div class="node-body">
+              <span class="node-emoji">🍞</span>
+              <span class="node-title">採集食物</span>
+            </div>
+          </div>
+          <div class="gather-node" id="node-metal" data-resource="metal" role="button" tabindex="0" aria-label="採集金屬" style="display: none;">
+            <div class="node-ring"></div>
+            <div class="node-glow"></div>
+            <div class="node-body">
+              <span class="node-emoji">🪙</span>
+              <span class="node-title">採集金屬</span>
+            </div>
+          </div>
+          <div class="gather-node" id="node-money" data-resource="money" role="button" tabindex="0" aria-label="賺取金錢" style="display: none;">
+            <div class="node-ring"></div>
+            <div class="node-glow"></div>
+            <div class="node-body">
+              <span class="node-emoji">💰</span>
+              <span class="node-title">賺取金錢</span>
             </div>
           </div>
         </div>
@@ -391,7 +419,7 @@
                   <h3 id="manageBuildingName" style="font-size: 1.2rem; font-weight: 800; color: #ffffff; margin-bottom: 0.2rem;">🛖 [Lv.1] 小木屋</h3>
                   <p id="manageBuildingDesc" style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.2rem; margin-bottom: 0; line-height: 1.4;">提供 3 人口上限</p>
                 </div>
-                <div id="manageBuildingEffect" style="font-size: 0.85rem; font-weight: 800; color: #34d399; background: rgba(52, 211, 153, 0.15); padding: 0.4rem 0.8rem; border-radius: 8px; text-align:center; white-space:nowrap; align-self:center;">
+                <div id="manageBuildingEffect" style="font-size: 0.85rem; font-weight: 800; color: #34d399; background: rgba(52, 211, 153, 0.12); border: 1px solid rgba(52, 211, 153, 0.2); padding: 0.5rem 0.8rem; border-radius: 10px; text-align: left; width: 100%; box-sizing: border-box; line-height: 1.4; display: inline-block;">
                   +3 人口
                 </div>
               </div>
@@ -445,6 +473,30 @@
         </div>
         <div class="dispatch-list" style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
           <!-- 第一階段：基礎機制與蒸汽工業 -->
+          <button class="build-btn" id="btnTechClickFood" style="width: 100%;" disabled>
+            <div class="build-btn-info">
+              <span class="build-btn-title">🍞 研發【採集生存術】(手動點擊食物)</span>
+              <span class="build-btn-cost">📚 50 知識 | 💰 30 金</span>
+            </div>
+            <span class="build-btn-count" id="techClickFoodStatus">未解鎖</span>
+          </button>
+
+          <button class="build-btn" id="btnTechClickMetal" style="width: 100%;" disabled>
+            <div class="build-btn-info">
+              <span class="build-btn-title">🪙 研發【初級淘金法】(手動點擊金屬)</span>
+              <span class="build-btn-cost">📚 200 知識 | 💰 150 金</span>
+            </div>
+            <span class="build-btn-count" id="techClickMetalStatus">未解鎖</span>
+          </button>
+
+          <button class="build-btn" id="btnTechClickMoney" style="width: 100%;" disabled>
+            <div class="build-btn-info">
+              <span class="build-btn-title">💰 研發【鑄幣許可權】(手動點擊金錢)</span>
+              <span class="build-btn-cost">📚 500 知識 | 💰 400 金</span>
+            </div>
+            <span class="build-btn-count" id="techClickMoneyStatus">未解鎖</span>
+          </button>
+
           <button class="build-btn" id="btnTechHero" style="width: 100%;" disabled>
             <div class="build-btn-info">
               <span class="build-btn-title">🛡️ 研發【冒險者特許證】(英雄開啟)</span>
@@ -486,6 +538,14 @@
           </button>
 
           <!-- 第二階段：人工智慧與量子時代 -->
+          <button class="build-btn" id="btnTechDoubleClick" style="width: 100%;" disabled>
+            <div class="build-btn-info">
+              <span class="build-btn-title">⚡ 研發【神經增幅模組】(手動點擊翻倍)</span>
+              <span class="build-btn-cost">📚 1000 知識 | 💰 800 金 | ⚡ 100 電</span>
+            </div>
+            <span class="build-btn-count" id="techDoubleClickStatus">未解鎖</span>
+          </button>
+
           <button class="build-btn" id="btnTechAutoStudy" style="width: 100%;" disabled>
             <div class="build-btn-info">
               <span class="build-btn-title">🧠 研發【自我迭代算法】(解鎖自動科研)</span>
@@ -540,6 +600,18 @@
             </div>
             <div class="battle-log" id="battleLog">
               <div>🚩 準備出征，打造裝備以提升屬性！</div>
+            </div>
+            <!-- AI Tactic Ribbon -->
+            <div class="battle-ai-panel" style="margin-top: 0.6rem; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.05); padding: 0.45rem 0.75rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
+              <span style="font-size: 0.8rem; font-weight: bold; color: #a855f7; display: flex; align-items: center; gap: 4px;">
+                🧠 AI 戰術狀態：<span id="aiModeText" style="color: #a1a1aa;">🛑 純普攻模式 (待結印)</span>
+              </span>
+              <select id="devAiModeSelect" style="background: rgba(0,0,0,0.6); border: 1px solid rgba(168, 85, 247, 0.5); color: #fff; font-size: 0.75rem; border-radius: 4px; padding: 2px 6px; cursor: pointer; transition: all 0.2s ease;">
+                <option value="basic">🛑 手動/純普攻 AI</option>
+                <option value="balanced">⚖️ 平衡戰術 AI</option>
+                <option value="defensive">🛡️ 守護防衛 AI</option>
+                <option value="offensive">⚔️ 強攻狂暴 AI</option>
+              </select>
             </div>
           </div>
 
@@ -693,7 +765,7 @@
                 </select>
               </div>
               <button id="btnRefreshSecretShop" class="btn-danger" style="background: linear-gradient(135deg, #7e22ce, #b45309); border: 1px solid #eab308; color: #fff; font-weight: bold; box-shadow: 0 0 10px rgba(234,179,8,0.3);">
-                🔁 刷新貨架 (<span id="secretRefreshCostText">💠 15</span>)
+                <span id="secretRefreshCostText">🔁 刷新貨架 (💠 15)</span>
               </button>
             </div>
             <div class="secret-shop-grid" id="secretShopGrid">
@@ -798,6 +870,9 @@
       <p style="color: #94a3b8; margin-bottom: 2rem; font-size: 0.92rem; line-height: 1.5;">難度將決定基礎採集率、魔物的戰鬥數值與報酬。<br><span style="color: #fde047;">※ 此設定將鎖定在此存檔中，中途無法修改。</span></p>
       
       <div style="display: flex; flex-direction: column; gap: 1rem;">
+        <button class="build-btn" onclick="setDifficulty('test')" style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); border: none; padding: 0.9rem; font-weight: 700; color: white;">
+          🧪 測試模式 (資源 x10.0 / 魔物極弱 / 測試專用)
+        </button>
         <button class="build-btn" onclick="setDifficulty('easy')" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); border: none; padding: 0.9rem; font-weight: 700; color: white;">
           🌱 簡單模式 (資源 x2.0 / 魔物溫和 / 適合測試)
         </button>
@@ -814,20 +889,18 @@
     </div>
   </div>
 
-  <!-- Calculus Exam Modal -->
-  <div id="examModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
-    <div class="glass-card" style="width: 400px; padding: 2rem; text-align: center; background: #1e293b;">
-      <h2 style="color: #fde047; margin-bottom: 1rem;">📖 轉職殿微積分測驗</h2>
-      <p style="color: #e2e8f0; margin-bottom: 1.5rem;">想突破等級 9，必須具備基礎的微積分知識。<br>請問：變數 x 對 x 進行微分的結果是多少？</p>
+  <!-- Dynamic Scholar Exam Modal -->
+  <div id="examModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+    <div class="glass-card" style="width: 450px; padding: 2rem; text-align: center; background: #1e293b; border: 2px solid #eab308; box-shadow: 0 10px 30px rgba(234, 179, 8, 0.15);">
+      <h2 id="examTitle" style="color: #fde047; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">📖 轉職與學術殿試</h2>
+      <p id="examDesc" style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 1rem;">※ 突破自我必須具備過人的學識，請謹慎應答。</p>
+      <div id="examQuestion" style="color: #f8fafc; font-size: 1.05rem; margin-bottom: 1.5rem; min-height: 60px; display: flex; align-items: center; justify-content: center; padding: 0.8rem; background: rgba(0,0,0,0.25); border-radius: 6px; line-height: 1.5;"></div>
       
-      <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem;">
-        <button class="build-btn" onclick="submitExam(0)">選項 0</button>
-        <button class="build-btn" onclick="submitExam(1)">選項 1</button>
-        <button class="build-btn" onclick="submitExam(2)">選項 2</button>
-        <button class="build-btn" onclick="submitExam(3)">選項 3</button>
+      <div id="examOptionsList" style="display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.5rem;">
+        <!-- Dynamically rendered options -->
       </div>
       
-      <button class="ctrl-btn" onclick="document.getElementById('examModal').style.display = 'none'" style="background: #ef4444;">放棄測驗</button>
+      <button class="ctrl-btn" onclick="document.getElementById('examModal').style.display = 'none'" style="background: #475569; color: #e2e8f0; border: 1px solid #64748b; width: 100%; padding: 0.5rem; border-radius: 6px; font-weight: 600;">暫時放棄</button>
     </div>
   </div>
   

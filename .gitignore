@@ -7,27 +7,23 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Dependencies
-node_modules/
-.pnp
-.pnp.js
-
-# Production / Build outputs
-dist/
-dist-ssr/
-coverage/
-
-# IDEs and Local Editor Configs
+node_modules
 .DS_Store
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-.idea/
-*.local
+.idea
+.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-# Local Temporary / Game Save Backups
+# TMP files
 savebank/
+

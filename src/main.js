@@ -36,7 +36,11 @@ const DEFAULT_STATE = {
     secretLv7: false,
     automation: false,
     templeTech: false,
-    autoStudyTech: false
+    autoStudyTech: false,
+    clickFoodTech: false,
+    clickMetalTech: false,
+    clickMoneyTech: false,
+    doubleClickTech: false
   },
   party: [],
   inventory: [],
@@ -422,6 +426,9 @@ const effectsLayer = document.getElementById("clickEffectsLayer");
 // Target Nodes DOM
 const nodeWood = document.getElementById("node-wood");
 const nodeStone = document.getElementById("node-stone");
+const nodeFood = document.getElementById("node-food");
+const nodeMetal = document.getElementById("node-metal");
+const nodeMoney = document.getElementById("node-money");
 const focusBadgeText = document.getElementById("activeFocusText");
 
 // City Base Grid DOM & Selection Variable
@@ -456,6 +463,15 @@ const rpgGuildCard = document.getElementById("rpgGuildCard");
 const dispatchRpgCard = document.getElementById("dispatchRpgCard");
 const rpgLockOverlay = document.getElementById("rpgLockOverlay");
 const rpgUnlockedContent = document.querySelector(".rpg-unlocked-content");
+const btnTechClickFood = document.getElementById("btnTechClickFood");
+const techClickFoodStatusEl = document.getElementById("techClickFoodStatus");
+const btnTechClickMetal = document.getElementById("btnTechClickMetal");
+const techClickMetalStatusEl = document.getElementById("techClickMetalStatus");
+const btnTechClickMoney = document.getElementById("btnTechClickMoney");
+const techClickMoneyStatusEl = document.getElementById("techClickMoneyStatus");
+const btnTechDoubleClick = document.getElementById("btnTechDoubleClick");
+const techDoubleClickStatusEl = document.getElementById("techDoubleClickStatus");
+
 const btnTechHero = document.getElementById("btnTechHero");
 const techHeroStatusEl = document.getElementById("techHeroStatus");
 const btnTechAppraisal = document.getElementById("btnTechAppraisal");
@@ -740,6 +756,9 @@ function setGatherFocus(resource) {
   // Update node highlights
   nodeWood.classList.remove("active");
   nodeStone.classList.remove("active");
+  if (nodeFood) nodeFood.classList.remove("active");
+  if (nodeMetal) nodeMetal.classList.remove("active");
+  if (nodeMoney) nodeMoney.classList.remove("active");
   
   if (resource === 'wood') {
     nodeWood.classList.add("active");
@@ -747,6 +766,15 @@ function setGatherFocus(resource) {
   } else if (resource === 'stone') {
     nodeStone.classList.add("active");
     focusBadgeText.innerHTML = `🪨 採集石頭`;
+  } else if (resource === 'food') {
+    if (nodeFood) nodeFood.classList.add("active");
+    focusBadgeText.innerHTML = `🍞 採集食物`;
+  } else if (resource === 'metal') {
+    if (nodeMetal) nodeMetal.classList.add("active");
+    focusBadgeText.innerHTML = `🪙 採集金屬`;
+  } else if (resource === 'money') {
+    if (nodeMoney) nodeMoney.classList.add("active");
+    focusBadgeText.innerHTML = `💰 賺取金錢`;
   }
 }
 
@@ -821,7 +849,7 @@ function checkCostAffordable(cost) {
 function formatCostString(cost) {
   if (!cost) return "免費";
   const mapping = { wood: '🪵', stone: '🪨', food: '🍞', metal: '🪙', energy: '⚡', money: '💰' };
-  return Object.entries(cost).map(([res, val]) => `${mapping[res]} ${val}`).join(" | ");
+  return Object.entries(cost).map(([res, val]) => `${mapping[res]} ${window.formatNumberShort(val)}`).join(" | ");
 }
 
 function refreshCityDetailPanel() {
@@ -893,19 +921,20 @@ function refreshCityDetailPanel() {
     if (manageBuildingDesc) manageBuildingDesc.textContent = db.desc;
 
     let effText = "";
-    if (slot.type === 'cabin') effText = `+${curData.pop} 人口`;
-    else if (slot.type === 'farm') effText = `+${curData.gen} 食/秒`;
-    else if (slot.type === 'smelter') effText = `+${curData.gen} 金屬/秒`;
-    else if (slot.type === 'powerPlant') effText = `+${curData.gen} 能/秒`;
-    else if (slot.type === 'warehouse') effText = `儲存 +${curData.cap}`;
-    else if (slot.type === 'battery') effText = `能源 +${curData.cap}`;
-    else if (slot.type === 'bank') effText = `利息+${curData.gen}, 上限+${curData.cap}`;
-    else if (slot.type === 'school') effText = `+${curData.gen} 知識/秒`;
-    else if (slot.type === 'autoWood') effText = `+${curData.autoGen} 木/秒 (-${curData.energyCost}能)`;
-    else if (slot.type === 'autoMine') effText = `+${curData.autoGen} 石/秒 (-${curData.energyCost}能)`;
-    else if (slot.type === 'autoHarvest') effText = `+${curData.autoGen} 食/秒 (-${curData.energyCost}能)`;
-    else if (slot.type === 'autoStudy') effText = `+${curData.autoGen} 知識/秒 (-${curData.energyCost}能)`;
-    else if (slot.type === 'mithrilFactory') effText = `+${curData.autoGen} 秘銀/秒 (-${curData.metalCost}金屬 -${curData.stoneCost}礦石 -${curData.energyCost}能)`;
+    const fns = window.formatNumberShort;
+    if (slot.type === 'cabin') effText = `+${fns(curData.pop)} 人口`;
+    else if (slot.type === 'farm') effText = `+${fns(curData.gen)} 食/秒`;
+    else if (slot.type === 'smelter') effText = `+${fns(curData.gen)} 金屬/秒`;
+    else if (slot.type === 'powerPlant') effText = `+${fns(curData.gen)} 能/秒`;
+    else if (slot.type === 'warehouse') effText = `儲存 +${fns(curData.cap)}`;
+    else if (slot.type === 'battery') effText = `能源 +${fns(curData.cap)}`;
+    else if (slot.type === 'bank') effText = `利息+${fns(curData.gen)}, 上限+${fns(curData.cap)}`;
+    else if (slot.type === 'school') effText = `+${fns(curData.gen)} 知識/秒`;
+    else if (slot.type === 'autoWood') effText = `+${fns(curData.autoGen)} 木/秒 (-${fns(curData.energyCost)}能)`;
+    else if (slot.type === 'autoMine') effText = `+${fns(curData.autoGen)} 石/秒 (-${fns(curData.energyCost)}能)`;
+    else if (slot.type === 'autoHarvest') effText = `+${fns(curData.autoGen)} 食/秒 (-${fns(curData.energyCost)}能)`;
+    else if (slot.type === 'autoStudy') effText = `+${fns(curData.autoGen)} 知識/秒 (-${fns(curData.energyCost)}能)`;
+    else if (slot.type === 'mithrilFactory') effText = `+${fns(curData.autoGen)} 秘銀/秒 (-${fns(curData.metalCost)}金屬 -${fns(curData.stoneCost)}礦石 -${fns(curData.energyCost)}能)`;
     
     if (manageBuildingEffect) manageBuildingEffect.textContent = effText;
 
@@ -1104,7 +1133,8 @@ function getCapacities() {
     stone: 100 + stats.warehouseCap,
     food: 100 + stats.warehouseCap,
     metal: 50 + stats.warehouseCap,
-    energy: 50 + stats.batteryCap
+    energy: 50 + stats.batteryCap,
+    money: gameConfig.economy.baseMoneyCap + stats.bankMoneyCap
   };
 }
 
@@ -1113,6 +1143,11 @@ function updateUI() {
   const caps = getCapacities();
   const stats = getCityStats();
 
+  // Toggle visibility of resource nodes based on tech
+  if (nodeFood) nodeFood.style.display = state.tech.clickFoodTech ? "flex" : "none";
+  if (nodeMetal) nodeMetal.style.display = state.tech.clickMetalTech ? "flex" : "none";
+  if (nodeMoney) nodeMoney.style.display = state.tech.clickMoneyTech ? "flex" : "none";
+
   const diffBadgeVal = document.getElementById("diffBadgeVal");
   const diffCfg = DIFFICULTY_MULTIPLIERS[state.difficulty || 'normal'] || DIFFICULTY_MULTIPLIERS.normal;
   if (diffBadgeVal) {
@@ -1120,24 +1155,24 @@ function updateUI() {
     diffBadgeVal.style.color = diffCfg.color;
   }
   
-  setAllText(woodEls, Math.floor(state.wood));
-  setAllText(woodMaxEls, caps.wood);
+  setAllText(woodEls, window.formatNumberShort(state.wood));
+  setAllText(woodMaxEls, window.formatNumberShort(caps.wood));
   toggleAllClass(resWoodItems, "res-full", Math.floor(state.wood) >= caps.wood);
 
-  setAllText(stoneEls, Math.floor(state.stone));
-  setAllText(stoneMaxEls, caps.stone);
+  setAllText(stoneEls, window.formatNumberShort(state.stone));
+  setAllText(stoneMaxEls, window.formatNumberShort(caps.stone));
   toggleAllClass(resStoneItems, "res-full", Math.floor(state.stone) >= caps.stone);
 
-  setAllText(foodEls, Math.floor(state.food));
-  setAllText(foodMaxEls, caps.food);
+  setAllText(foodEls, window.formatNumberShort(state.food));
+  setAllText(foodMaxEls, window.formatNumberShort(caps.food));
   toggleAllClass(resFoodItems, "res-full", Math.floor(state.food) >= caps.food);
 
-  setAllText(metalEls, Math.floor(state.metal));
-  setAllText(metalMaxEls, caps.metal);
+  setAllText(metalEls, window.formatNumberShort(state.metal));
+  setAllText(metalMaxEls, window.formatNumberShort(caps.metal));
   toggleAllClass(resMetalItems, "res-full", Math.floor(state.metal) >= caps.metal);
 
-  setAllText(energyEls, Math.floor(state.energy));
-  setAllText(energyMaxEls, caps.energy);
+  setAllText(energyEls, window.formatNumberShort(state.energy));
+  setAllText(energyMaxEls, window.formatNumberShort(caps.energy));
   toggleAllClass(resEnergyItems, "res-full", Math.floor(state.energy) >= caps.energy);
   
   // Calculate dynamic net rates based on active population assignments
@@ -1175,38 +1210,38 @@ function updateUI() {
   const passiveGen = (stats.farmGen + populationFoodGen) * diffMult;
   const netFoodRate = passiveGen - totalFoodCost;
   const sign = netFoodRate >= 0 ? "+" : "";
-  setAllText(foodRateEls, `${sign}${netFoodRate.toFixed(1)}/秒`);
+  setAllText(foodRateEls, `${sign}${window.formatNumberShort(netFoodRate)}/秒`);
   toggleAllClass(foodRateEls, "alert-text", netFoodRate < 0);
 
   // Update automated Metal rates
   const netMetalRate = stats.smelterGen * diffMult;
-  setAllText(metalRateEls, `+${netMetalRate.toFixed(1)}/秒`);
+  setAllText(metalRateEls, `+${window.formatNumberShort(netMetalRate)}/秒`);
 
   // Update automated Energy rates
   const netEnergyRate = stats.powerGen * diffMult;
-  setAllText(energyRateEls, `+${netEnergyRate.toFixed(1)}/秒`);
+  setAllText(energyRateEls, `+${window.formatNumberShort(netEnergyRate)}/秒`);
   
   // Money display with dynamic scaling from banks (Config driven)
   const moneyCap = gameConfig.economy.baseMoneyCap + stats.bankMoneyCap;
-  setAllText(moneyEls, Math.floor(state.money));
-  setAllText(moneyMaxEls, moneyCap >= 1000 ? (moneyCap >= 10000 ? (moneyCap/1000) + 'k' : moneyCap) : moneyCap);
+  setAllText(moneyEls, window.formatNumberShort(state.money));
+  setAllText(moneyMaxEls, window.formatNumberShort(moneyCap));
   toggleAllClass(resMoneyItems, "res-full", Math.floor(state.money) >= moneyCap);
 
   // Knowledge display
-  setAllText(knowledgeEls, Math.floor(state.knowledge));
+  setAllText(knowledgeEls, window.formatNumberShort(state.knowledge));
 
   // Money rate: bank passive + merchants active
   const netMoneyRate = stats.bankGen + populationMoneyGen;
-  setAllText(moneyRateEls, `+${netMoneyRate.toFixed(1)}/秒`);
+  setAllText(moneyRateEls, `+${window.formatNumberShort(netMoneyRate)}/秒`);
 
   // Knowledge rate: school passive + scholars active + autoStudy active (scaled by difficulty)
   const netKnowledgeRate = ((stats.schoolGen + stats.autoStudyGen) * diffMult) + populationKnowledgeGen;
-  setAllText(knowledgeRateEls, `+${netKnowledgeRate.toFixed(1)}/秒`);
+  setAllText(knowledgeRateEls, `+${window.formatNumberShort(netKnowledgeRate)}/秒`);
 
   // Mithril display and rate computation
-  setAllText(mithrilEls, Math.floor(state.mithril || 0));
+  setAllText(mithrilEls, window.formatNumberShort(state.mithril || 0));
   const netMithrilRate = (stats.autoMithrilGen * diffMult) + populationMithrilGen;
-  setAllText(mithrilRateEls, `+${netMithrilRate.toFixed(2)}/秒`);
+  setAllText(mithrilRateEls, `+${window.formatNumberShort(netMithrilRate)}/秒`);
 
   const currentPop = state.population.length;
   workerEl.textContent = currentPop;
@@ -1252,6 +1287,53 @@ function updateUI() {
   if (stats.schoolMult > 0) {
     if (researchCard) researchCard.style.display = "block";
     if (knowledgeValEl) knowledgeValEl.textContent = Math.floor(state.knowledge);
+
+    // Click Food Tech
+    const foodTCfg = gameConfig.combat.tech.clickFoodTech;
+    if (state.tech.clickFoodTech) {
+      if (btnTechClickFood) btnTechClickFood.disabled = true;
+      if (techClickFoodStatusEl) techClickFoodStatusEl.textContent = "已研發 ✅";
+    } else {
+      if (btnTechClickFood) btnTechClickFood.disabled = (state.knowledge < foodTCfg.reqKnowledge || state.money < foodTCfg.reqMoney);
+      if (techClickFoodStatusEl) techClickFoodStatusEl.textContent = "未研發";
+    }
+
+    // Click Metal Tech
+    const metalTCfg = gameConfig.combat.tech.clickMetalTech;
+    if (state.tech.clickMetalTech) {
+      if (btnTechClickMetal) btnTechClickMetal.disabled = true;
+      if (techClickMetalStatusEl) techClickMetalStatusEl.textContent = "已研發 ✅";
+    } else {
+      if (btnTechClickMetal) {
+        btnTechClickMetal.disabled = (!state.tech.clickFoodTech || state.knowledge < metalTCfg.reqKnowledge || state.money < metalTCfg.reqMoney);
+      }
+      if (techClickMetalStatusEl) techClickMetalStatusEl.textContent = !state.tech.clickFoodTech ? "🔒 需解鎖食物" : "未研發";
+    }
+
+    // Click Money Tech
+    const moneyTCfg = gameConfig.combat.tech.clickMoneyTech;
+    if (state.tech.clickMoneyTech) {
+      if (btnTechClickMoney) btnTechClickMoney.disabled = true;
+      if (techClickMoneyStatusEl) techClickMoneyStatusEl.textContent = "已研發 ✅";
+    } else {
+      if (btnTechClickMoney) {
+        btnTechClickMoney.disabled = (!state.tech.clickMetalTech || state.knowledge < moneyTCfg.reqKnowledge || state.money < moneyTCfg.reqMoney);
+      }
+      if (techClickMoneyStatusEl) techClickMoneyStatusEl.textContent = !state.tech.clickMetalTech ? "🔒 需解鎖金屬" : "未研發";
+    }
+
+    // Double Click Tech
+    const dblTCfg = gameConfig.combat.tech.doubleClickTech;
+    if (state.tech.doubleClickTech) {
+      if (btnTechDoubleClick) btnTechDoubleClick.disabled = true;
+      if (techDoubleClickStatusEl) techDoubleClickStatusEl.textContent = "已研發 ✅";
+    } else {
+      if (btnTechDoubleClick) {
+        const reqE = dblTCfg.reqEnergy || 0;
+        btnTechDoubleClick.disabled = (!state.tech.clickMoneyTech || state.knowledge < dblTCfg.reqKnowledge || state.money < dblTCfg.reqMoney || state.energy < reqE);
+      }
+      if (techDoubleClickStatusEl) techDoubleClickStatusEl.textContent = !state.tech.clickMoneyTech ? "🔒 需解鎖金錢" : "未研發";
+    }
     
     const tCfg = gameConfig.combat.tech.heroLicense;
     if (state.tech.heroLicense) {
@@ -1351,8 +1433,15 @@ function updateUI() {
     const btnQuestBoss = document.getElementById("btnQuestBoss");
     if (btnQuestBoss) {
       const bLvl = state.bossLevel || 1;
-      const bossNames = ["【貪】", "【貪 嗔】", "【貪 嗔 癡】"];
-      const bName = bossNames[Math.min(3, bLvl) - 1] || bossNames[0];
+      const bossNames = [
+        "【貪】", 
+        "【貪 嗔】", 
+        "【貪 嗔 癡】", 
+        "【地獄 6柱】", 
+        "【深淵 4癡】", 
+        "【滅絕 6癡】"
+      ];
+      const bName = bossNames[Math.min(6, bLvl) - 1] || bossNames[bossNames.length - 1];
       btnQuestBoss.textContent = `💀 挑戰巨獸 Lv.${bLvl} ${bName}`;
     }
 
@@ -1432,7 +1521,11 @@ function performClick(resourceOverride = null, sourceX = null, sourceY = null) {
   const caps = getCapacities();
   
   const diffCfg = DIFFICULTY_MULTIPLIERS[state.difficulty || 'normal'] || DIFFICULTY_MULTIPLIERS.normal;
-  const clickYield = 1 * diffCfg.gather;
+  let clickYield = 1 * diffCfg.gather;
+
+  if (state.tech && state.tech.doubleClickTech) {
+    clickYield *= 2;
+  }
   
   let text = "";
   let color = "";
@@ -1453,6 +1546,33 @@ function performClick(resourceOverride = null, sourceX = null, sourceY = null) {
     state.stone = Math.min(state.stone + clickYield, caps.stone);
     text = `+${clickYield % 1 === 0 ? clickYield : clickYield.toFixed(1)} 石頭`;
     color = "#94a3b8"; // slate
+  } else if (resource === "food") {
+    if (!state.tech.clickFoodTech) return;
+    if (Math.floor(state.food) >= caps.food) {
+      spawnFloatingText("⚠️ 倉庫已滿", "#ef4444", sourceX, sourceY);
+      return;
+    }
+    state.food = Math.min(state.food + clickYield, caps.food);
+    text = `+${clickYield % 1 === 0 ? clickYield : clickYield.toFixed(1)} 食物`;
+    color = "#f472b6";
+  } else if (resource === "metal") {
+    if (!state.tech.clickMetalTech) return;
+    if (Math.floor(state.metal) >= caps.metal) {
+      spawnFloatingText("⚠️ 倉庫已滿", "#ef4444", sourceX, sourceY);
+      return;
+    }
+    state.metal = Math.min(state.metal + clickYield, caps.metal);
+    text = `+${clickYield % 1 === 0 ? clickYield : clickYield.toFixed(1)} 金屬`;
+    color = "#fbbf24";
+  } else if (resource === "money") {
+    if (!state.tech.clickMoneyTech) return;
+    if (Math.floor(state.money) >= caps.money) {
+      spawnFloatingText("⚠️ 錢包已滿", "#ef4444", sourceX, sourceY);
+      return;
+    }
+    state.money = Math.min(state.money + clickYield, caps.money);
+    text = `+${clickYield % 1 === 0 ? clickYield : clickYield.toFixed(1)} 金錢`;
+    color = "#eab308";
   } else {
     return; // Non-clickable resource
   }
@@ -1756,6 +1876,29 @@ document.querySelectorAll(".rpg-sub-tab").forEach(tabBtn => {
   });
 });
 
+// Global short number formatting helper (K for thousands, M for millions, B for billions)
+window.formatNumberShort = function(num, decimals = 1) {
+  if (num === undefined || num === null || isNaN(num)) return "0";
+  const isNegative = num < 0;
+  const abs = Math.abs(num);
+  let result = "";
+  
+  if (abs < 1000) {
+    result = abs % 1 === 0 ? abs.toFixed(0) : abs.toFixed(decimals);
+  } else if (abs < 1000000) {
+    result = (abs / 1000).toFixed(decimals) + "K";
+  } else if (abs < 1000000000) {
+    result = (abs / 1000000).toFixed(decimals) + "M";
+  } else if (abs < 1000000000000) {
+    result = (abs / 1000000000).toFixed(decimals) + "B";
+  } else {
+    result = (abs / 1000000000000).toFixed(decimals) + "T";
+  }
+  
+  // Regex to eliminate trailing ".0" but keep letter suffix (e.g. "12.0K" -> "12K")
+  return (isNegative ? "-" : "") + result.replace(/\.0([KMBT]?)$/, "$1");
+};
+
 // Calculate needed EXP for next level based on planned gaps
 window.getReqExp = function(lvl) {
   const expGaps = [0, 100, 205, 300, 419, 563, 728, 916, 1122, 1347];
@@ -1856,6 +1999,37 @@ function renderPopulationRoster() {
       </button>
     `;
 
+    let knowledgeBtnHtml = "";
+    if (p.jobClass === "novice" && p.level < 10) {
+      const reqExp = window.getReqExp(p.level);
+      const remainingExp = reqExp - p.exp;
+      const neededKnowledge = remainingExp * 1000;
+      
+      let btnText = "";
+      let btnDisabled = false;
+
+      if (state.knowledge >= neededKnowledge) {
+        btnText = `📚 知識升級 (-${window.formatNumberShort(neededKnowledge)})`;
+      } else {
+        const canGain = Math.floor(state.knowledge / 1000);
+        if (canGain > 0) {
+          btnText = `📚 知識灌注 (+${canGain} EXP)`;
+        } else {
+          btnText = `📚 知識不足 (需 1K)`;
+          btnDisabled = true;
+        }
+      }
+
+      knowledgeBtnHtml = `
+        <button class="roster-action-btn btn-study" 
+          onclick="infuseKnowledge('${p.id}')" 
+          ${btnDisabled ? "disabled" : ""} 
+          title="消耗大腦知識點數，直接灌頂流浪者！(1000 知識 = 1 EXP)">
+          ${btnText}
+        </button>
+      `;
+    }
+
     const hpBarHtml = `
       <div>
         <div class="hp-bar-wrapper">
@@ -1867,6 +2041,28 @@ function renderPopulationRoster() {
         </div>
       </div>
     `;
+
+    let statsHtml = "";
+    if (eff) {
+      if (state.tech.appraisalTech) {
+        statsHtml = `
+          <div class="roster-stats-row" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; font-size: 0.75rem; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 8px; margin: 4px 0; border: 1px solid rgba(255,255,255,0.05);">
+            <div style="color: #e2e8f0; display:flex; justify-content:space-between; gap: 2px; padding-right:4px;"><span>⚔️</span> <span>${eff.atk}</span></div>
+            <div style="color: #e2e8f0; display:flex; justify-content:space-between; gap: 2px; padding-right:4px;"><span>🛡️</span> <span>${eff.def}</span></div>
+            <div style="color: #e2e8f0; display:flex; justify-content:space-between; gap: 2px;"><span>⚡</span> <span>${eff.spd.toFixed(1)}</span></div>
+            <div style="color: #e2e8f0; display:flex; justify-content:space-between; gap: 2px; padding-right:4px;"><span>🪄</span> <span>${eff.matk}</span></div>
+            <div style="color: #e2e8f0; display:flex; justify-content:space-between; gap: 2px; padding-right:4px;"><span>🔮</span> <span>${eff.mdef}</span></div>
+            <div style="color: #e2e8f0; display:flex; justify-content:space-between; gap: 2px;"><span>💥</span> <span>${(eff.critRate * 100).toFixed(0)}%</span></div>
+          </div>
+        `;
+      } else {
+        statsHtml = `
+          <div style="text-align: center; font-size: 0.7rem; color: #64748b; background: rgba(0,0,0,0.15); padding: 0.3rem; border-radius: 6px; margin: 4px 0; font-style: italic;">
+            🔮 屬性待鑑定 (請研發水晶球)
+          </div>
+        `;
+      }
+    }
 
     const row = document.createElement("div");
     row.className = "roster-card";
@@ -1883,10 +2079,13 @@ function renderPopulationRoster() {
             </span>
             <span style="background: rgba(239,68,68,0.15); color:#ef4444; font-weight:bold; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 6px; border: 1px solid rgba(239,68,68,0.3); display: inline-flex; align-items: center; gap: 4px;">🏥 療養中(+5/s)</span>
           </div>
-          ${exileBtnHtml}
+          <div class="roster-header-actions" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+            ${exileBtnHtml}
+          </div>
         </div>
         <div class="roster-body-box" style="border-color: rgba(239,68,68,0.15) !important;">
           ${hpBarHtml}
+          ${statsHtml}
           <div class="roster-assign-row">
             <span style="font-size: 0.8rem; color: #fca5a5; display: flex; align-items: center; gap: 4px; font-weight:500;">⏳ 正在醫院靜養康復</span>
             <button class="roster-action-btn btn-heal" 
@@ -1918,10 +2117,14 @@ function renderPopulationRoster() {
             <span class="roster-name">${p.name} <span style="font-size:0.75rem; opacity:0.75;">${genderSym}${faithSym}</span> (Lv.${p.level})</span>
             ${jobBadge}
           </div>
-          ${exileBtnHtml}
+          <div class="roster-header-actions" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+            ${knowledgeBtnHtml}
+            ${exileBtnHtml}
+          </div>
         </div>
         <div class="roster-body-box">
           ${hpBarHtml}
+          ${statsHtml}
           <div class="roster-assign-row">
             <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 600;">當前指派任務</span>
             <select onchange="changeResidentAssignment('${p.id}', this.value)" class="roster-assign-select">
@@ -1991,8 +2194,8 @@ function renderTempleRoster() {
     if (needsExam) {
       actionHTML += `
         <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; background: rgba(96,165,250,0.15); border: 1px solid rgba(96,165,250,0.3); padding: 0.6rem; border-radius: 6px;">
-          <span style="font-size: 0.75rem; color: #93c5fd; font-weight:bold;">🎓 微積分極限考驗 (等級上限突破)：</span>
-          <button class="roster-action-btn btn-exam" style="width: 100%; padding: 0.45rem !important; font-size: 0.85rem !important; font-weight:bold;" onclick="openExamModal('${p.id}')">📖 進入考場挑戰</button>
+          <span style="font-size: 0.75rem; color: #93c5fd; font-weight:bold;">👑 神之晉升殿試 (突破至 Lv.10)：</span>
+          <button class="roster-action-btn btn-exam" style="width: 100%; padding: 0.45rem !important; font-size: 0.85rem !important; font-weight:bold;" onclick="openExamModal('${p.id}', 'mathLevel10')">📖 進入考場挑戰</button>
         </div>
       `;
     }
@@ -2029,15 +2232,9 @@ window.templePromoteResident = function(id) {
   }
   const p = state.population.find(r => r.id === id);
   if (p) {
-    p.jobClass = select.value;
-    p.level = 5;
-    p.exp = 0;
-    p.assignment = 'idle'; 
-    
     if (select) select.blur();
-    
-    showToast(`🎉 恭喜！${p.name} 於神殿成功轉職為 ${gameConfig.heroes[p.jobClass].name}！已重置為 Lv.5 從新覺醒出發！`, "success");
-    updateUI();
+    // Open Qualification Exam Modal instead of instant promoting!
+    window.openExamModal(id, 'mathPromote', select.value);
   }
 };
 
@@ -2051,6 +2248,52 @@ window.exileResident = function(id) {
     showToast(`🥾 ${p.name} 已被流放出城...`, "warning");
     updateUI();
   }
+};
+
+window.infuseKnowledge = function(id) {
+  const p = state.population.find(r => r.id === id);
+  if (!p) return;
+  
+  if (p.jobClass !== "novice") {
+    showToast("❌ 只有未轉職的流浪者可以接受知識灌頂！", "error");
+    return;
+  }
+  
+  if (p.level >= 10) {
+    showToast("❌ 角色等級已達極限上限！", "error");
+    return;
+  }
+
+  const req = window.getReqExp(p.level);
+  const remainingExp = req - p.exp;
+  const requiredKnowledge = remainingExp * 1000;
+  
+  if (state.knowledge < 1000) {
+    showToast("❌ 城鎮累積知識不足，至少需要 1000 知識來轉化 1 EXP！", "error");
+    return;
+  }
+
+  // Max out or consume all available knowledge to gain proportional EXP
+  const spendLimit = Math.min(state.knowledge, requiredKnowledge);
+  const actualSpend = Math.floor(spendLimit / 1000) * 1000;
+  
+  if (actualSpend <= 0) return;
+  
+  const expGained = actualSpend / 1000;
+  
+  state.knowledge -= actualSpend;
+  p.exp += expGained;
+  
+  showToast(`📚 消耗了 ${actualSpend} 知識，注入 ${p.name} 的大腦，獲得了 ${expGained} EXP！`, "success");
+  
+  // Check for Level Up
+  if (p.exp >= req) {
+    p.exp -= req;
+    p.level += 1;
+    showToast(`✨🆙 ${p.name} 的心靈開竅，等級提升至 Lv.${p.level}！`, "info");
+  }
+  
+  updateUI();
 };
 
 window.reviveHero = function(id) {
@@ -2150,8 +2393,8 @@ window.changeResidentAssignment = function(id, newAssignment) {
     if (newAssignment === 'combat') {
       const combatants = state.population.filter(r => r.assignment === 'combat');
 
-      if (combatants.length >= 4 && p.assignment !== 'combat') {
-        showToast("出征隊伍已滿 (上限4人)！", "error");
+      if (combatants.length >= 6 && p.assignment !== 'combat') {
+        showToast("出征隊伍已滿 (上限6人)！", "error");
         updateUI();
         return;
       }
@@ -2175,29 +2418,191 @@ window.changeResidentAssignment = function(id, newAssignment) {
 
 
 
-let currentExamResidentId = null;
-
-window.openExamModal = function(id) {
-  currentExamResidentId = id;
-  const modal = document.getElementById('examModal');
-  if (modal) modal.style.display = 'flex';
+// Dynamic Exam Pool System for "Educational Gamification"
+const EXAM_BANKS = {
+  mathPromote: [ // Lv.5 Job Change (Easy/Medium Math)
+    { q: "試問複數單位平方 $i^2$ 的值是多少？", opts: ["1", "-1", "0", "$i$"], ans: "-1" },
+    { q: "代數求解：$2x + 7 = 15$，請問 $x = $？", opts: ["3", "4", "5", "8"], ans: "4" },
+    { q: "對數計算：$\\log_{10}(1000)$ 等於？", opts: ["1", "2", "3", "4"], ans: "3" },
+    { q: "直角三角形兩股長度為 3 與 4，其斜邊長度為？", opts: ["4", "5", "6", "7"], ans: "5" },
+    { q: "平面直角座標系中，點 $(3, 4)$ 到原點的距離為？", opts: ["3", "4", "5", "7"], ans: "5" },
+    { q: "若一個圓的半徑為 $r$，其面積公式為？", opts: ["$2\\pi r$", "$\\pi r^2$", "$\\frac{4}{3}\\pi r^3$", "$\\pi r$"], ans: "$\\pi r^2$" }
+  ],
+  mathLevel10: [ // Lv.9 -> Lv.10 (Hard Math / Calculus)
+    { q: "求自然對數的導數：$\\frac{d}{dx} (\\ln x) = $？", opts: ["$\\frac{1}{x}$", "$e^x$", "$x$", "$\\frac{1}{x^2}$"], ans: "$\\frac{1}{x}$" },
+    { q: "計算定積分：$\\int_0^1 3x^2 dx = $？", opts: ["0.5", "1", "2", "3"], ans: "1" },
+    { q: "三角函數恆等式：$\\sin^2 \\theta + \\cos^2 \\theta = $？", opts: ["0", "1", "2", "不存在"], ans: "1" },
+    { q: "求極限值：$\\lim_{x \\to \\infty} \\frac{2x^2 + x}{x^2 - 1} = $？", opts: ["0", "1", "2", "$\\infty$"], ans: "2" },
+    { q: "求導數：$\\frac{d}{dx} (e^{2x}) = $？", opts: ["$e^{2x}$", "$2e^{2x}$", "$\\frac{1}{2}e^{2x}$", "$2x e^{2x-1}$"], ans: "$2e^{2x}$" }
+  ],
+  englishShop: [ // Dynamic Extra Shop Refresh Exam (English Practice)
+    { q: "下列英文單字何者是「形容詞 (Adjective)」？", opts: ["Beauty", "Beautiful", "Beautify", "Beautifully"], ans: "Beautiful" },
+    { q: "介係詞辨析：\"He is interested ____ music.\"", opts: ["in", "on", "at", "with"], ans: "in" },
+    { q: "英文單字填空：\"I need to ______ my homework.\"", opts: ["make", "do", "take", "have"], ans: "do" },
+    { q: "單字 \"Abundant\" 的最接近同義詞是？", opts: ["Scarce", "Rare", "Plentiful", "Hidden"], ans: "Plentiful" },
+    { q: "慣用語 \"A piece of cake\" 的含意是？", opts: ["一塊蛋糕", "奢侈享受", "非常簡單的事", "麻煩的開端"], ans: "非常簡單的事" },
+    { q: "英文單字 \"Generous\" (慷慨的) 其反義詞是？", opts: ["Kind", "Helpful", "Stingy", "Rich"], ans: "Stingy" },
+    { q: "動詞 \"write\" 的過去分詞 (Past Participle) 為何？", opts: ["wrote", "written", "writing", "writes"], ans: "written" },
+    { q: "單字 \"Incredible\" (不可思議的) 的同義詞是：", opts: ["Ordinary", "Boring", "Amazing", "Simple"], ans: "Amazing" },
+    { q: "慣用語 \"Break a leg\" 在口語中的含意是？", opts: ["祝你好運！", "折斷大腿", "遭遇不幸", "快點跑開"], ans: "祝你好運！" },
+    { q: "中翻英：「冒險」最對應的英文單字是？", opts: ["Advance", "Adventure", "Adversity", "Advice"], ans: "Adventure" }
+  ],
+  scienceHunt: [ // Dynamic High Level Hunt Interrupt (Science Trivia)
+    { q: "下列關於「光合作用」的敘述，何者正確？", opts: ["放出大量一氧化碳", "主要利用葉綠素將二氧化碳與水轉化為糖與氧", "主要在夜間進行", "這是動物獲取熱量的唯一途徑"], ans: "主要利用葉綠素將二氧化碳與水轉化為糖與氧" },
+    { q: "太陽系中，哪一顆行星因表面覆蓋大量氧化鐵而顯現紅色，被稱為「紅色星球」？", opts: ["水星", "金星", "火星", "土星"], ans: "火星" },
+    { q: "在標準一大氣壓下，純水的「沸點」為攝氏幾度？", opts: ["0度", "50度", "100度", "200度"], ans: "100度" },
+    { q: "人體血液中，主要負責輸送氧氣的「紅血球成分」是什麼？", opts: ["白血球", "血小板", "血紅素", "淋巴液"], ans: "血紅素" },
+    { q: "牛頓第二運動定律中，力與質量、加速度的關係式為何？", opts: ["$E = mc^2$", "$F = ma$", "$V = IR$", "$P = IV$"], ans: "$F = ma$" },
+    { q: "物質若不經過液態，由固體直接轉變為氣體的物理現象稱為？", opts: ["汽化", "昇華", "凝固", "熔化"], ans: "昇華" },
+    { q: "下列哪一項是目前科學界公認生物體的基本結構與功能單位？", opts: ["分子", "原子", "細胞", "器官"], ans: "細胞" },
+    { q: "地球的大氣層中，所佔體積比例「最高」的氣體是？", opts: ["氧氣", "二氧化碳", "氫氣", "氮氣"], ans: "氮氣" },
+    { q: "「酸雨」的主要形成原因，是因為空氣中含有過多的何種污染物？", opts: ["二氧化碳", "硫氧化物與氮氧化物", "惰性氣體", "水蒸氣"], ans: "硫氧化物與氮氧化物" },
+    { q: "在力學計算中，一個物體在地球表面受到的重力加速度 $g$ 大約是多少？", opts: ["$9.8 \\text{ m/s}^2$", "$1.6 \\text{ m/s}^2$", "$12.5 \\text{ m/s}^2$", "$3.6 \\text{ m/s}^2$"], ans: "$9.8 \\text{ m/s}^2$" }
+  ]
 };
 
-window.submitExam = function(answer) {
+let currentExamContext = null;
+
+// Fisher-Yates algorithm to shuffle options and prevent position recall
+function shuffleOptions(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+window.openExamModal = function(residentId, examType, targetJobClass = null) {
+  let p = null;
+  if (residentId) {
+    p = state.population.find(r => r.id === residentId);
+    if (!p) return;
+  }
+  
+  const pool = EXAM_BANKS[examType];
+  if (!pool || pool.length === 0) return;
+  
+  // Pull question & shuffle options
+  const questionObj = pool[Math.floor(Math.random() * pool.length)];
+  const shuffledOpts = shuffleOptions(questionObj.opts);
+  
+  // Store into localized context
+  currentExamContext = {
+    id: residentId,
+    type: examType,
+    targetJob: targetJobClass,
+    shuffledOpts: shuffledOpts,
+    correctAnswerText: questionObj.ans
+  };
+  
+  const titleEl = document.getElementById('examTitle');
+  const descEl = document.getElementById('examDesc');
+  const questionEl = document.getElementById('examQuestion');
+  const optionsListEl = document.getElementById('examOptionsList');
   const modal = document.getElementById('examModal');
-  if (answer === 1) {
-    const p = state.population.find(r => r.id === currentExamResidentId);
-    if (p && p.level === 9) {
+  
+  // Dynamic Title configuration
+  if (examType === 'mathPromote') {
+    titleEl.innerHTML = `🎓【${p.name}】職業資格考試`;
+    const targetName = gameConfig.heroes[targetJobClass]?.name || "";
+    descEl.innerText = `※ 晉升為「${targetName}」的資格考核。需解出此數學題！`;
+  } else if (examType === 'mathLevel10') {
+    titleEl.innerHTML = `👑【${p.name}】神之晉升殿試`;
+    descEl.innerText = `※ 突破至 Lv.10 極限上限之測驗。需解出此數學題！`;
+  } else if (examType === 'englishShop') {
+    titleEl.innerHTML = `🛍️【神秘商店】英文學力挑戰`;
+    descEl.innerText = `※ 每日常規刷新上限 (10次) 已滿！答對此題英文即可免費進貨！`;
+  } else if (examType === 'scienceHunt') {
+    titleEl.innerHTML = `🌿【自然學堂】自動討伐安全考核`;
+    descEl.innerText = `※ 本次高階副本掛機已滿 10 次！請解答自然問題解開安全鎖，繼續出征打寶！`;
+  }
+  
+  // Render question and build option rows
+  questionEl.innerHTML = questionObj.q;
+  optionsListEl.innerHTML = shuffledOpts.map((opt, index) => {
+    return `<button class="build-btn" style="padding: 0.8rem; text-align: center; justify-content: center; background: #334155; border-radius: 6px; font-size: 1rem;" onclick="window.submitExam(${index})">${opt}</button>`;
+  }).join('');
+  
+  if (modal) modal.style.display = 'flex';
+  
+  // Trigger KaTeX Auto-Renderer for beautiful LaTeX formulas!
+  if (typeof renderMathInElement === 'function') {
+    setTimeout(() => {
+      renderMathInElement(modal, {
+        delimiters: [
+          {left: '$$', right: '$$', display: true},
+          {left: '$', right: '$', display: false}
+        ],
+        throwOnError: false
+      });
+    }, 20);
+  }
+};
+
+window.submitExam = function(selectedIndex) {
+  const modal = document.getElementById('examModal');
+  if (!currentExamContext) return;
+  
+  let p = null;
+  if (currentExamContext.id) {
+    p = state.population.find(r => r.id === currentExamContext.id);
+    if (!p) {
+      if (modal) modal.style.display = 'none';
+      currentExamContext = null;
+      return;
+    }
+  }
+  
+  const selectedAnswerText = currentExamContext.shuffledOpts[selectedIndex];
+  const isCorrect = selectedAnswerText === currentExamContext.correctAnswerText;
+  
+  if (isCorrect) {
+    if (currentExamContext.type === 'mathPromote') {
+      // Apply Dynamic Class promotion!
+      p.jobClass = currentExamContext.targetJob;
+      p.level = 5;
+      p.exp = 0;
+      p.assignment = 'idle';
+      showToast(`🎉 恭喜！${p.name} 通過考核，順利轉職為 ${gameConfig.heroes[p.jobClass].name}！`, "success");
+    } else if (currentExamContext.type === 'mathLevel10') {
+      // Apply Dynamic Cap Break!
       p.level = 10;
       p.exp = 0;
-      showToast(`🎓 恭喜！${p.name} 答對了微積分，突破界限升至 Lv.10！解鎖終極大招！`, "success");
-      updateUI();
+      showToast(`🎓 恭喜！${p.name} 成功突破神聖殿試，晉升至 Lv.10 極限層次！`, "success");
+    } else if (currentExamContext.type === 'englishShop') {
+      // Trigger free shop refresh
+      rollSecretShop(false);
+      renderSecretShop();
+      if (!state.secretShop.refreshCount) state.secretShop.refreshCount = 0;
+      state.secretShop.refreshCount++;
+      showToast(`🎉 英文正確！獲得了一次免費的神秘商店刷新機會！`, "success");
+    } else if (currentExamContext.type === 'scienceHunt') {
+      // Unlock the AFK gating
+      state.huntGateCount = 0;
+      showToast(`🎉 解答正確！成功突破大自然安全鎖，出征隊伍恢復掛機戰鬥！`, "success");
+      
+      // Auto-resume spawn if still active on hunt
+      if (combatState.active && combatState.target === "hunt") {
+        spawnEnemy();
+        logBattle(`➡ 自然神殿護罩散去，出征隊伍再度遭遇下一波對手！`, "log-item-heal");
+      }
     }
+    updateUI();
   } else {
-    showToast("❌ 答錯了！請回去重新準備微積分考試。", "error");
+    if (currentExamContext.type === 'mathPromote') {
+      showToast(`❌ 答錯了！數學運算失誤，${p.name} 的轉職申請被拒絕了！`, "error");
+    } else if (currentExamContext.type === 'mathLevel10') {
+      showToast(`❌ 答錯了！${p.name} 無法參透數理奧秘，極限突破失敗！`, "error");
+    } else if (currentExamContext.type === 'englishShop') {
+      showToast(`❌ 答錯了！單字拼讀有誤，無法獲得額外刷新次數，請重試！`, "error");
+    } else if (currentExamContext.type === 'scienceHunt') {
+      showToast(`❌ 答錯了！知識儲備不足，無法解除大自然考核鎖，請重新作答解鎖戰鬥！`, "error");
+    }
   }
+  
   if (modal) modal.style.display = 'none';
-  currentExamResidentId = null;
+  currentExamContext = null;
 };
 
 // Check eligible job classes based on docs/fight_rule.md guidelines
@@ -2273,24 +2678,34 @@ window.calcEffStats = function(person) {
     hit: baseConfig.hit || 0.9, evasion: baseConfig.evasion || 0.05, 
     critRate: baseConfig.critRate + (person.baseStats ? (person.baseStats.critRate || 0) : 0), 
     critDmg: baseConfig.critDmg || 1.5, 
-    lucky: baseConfig.lucky + (person.baseStats ? (person.baseStats.lucky || 0) : 0)
+    lucky: baseConfig.lucky + (person.baseStats ? (person.baseStats.lucky || 0) : 0),
+    pdr: 0, mdr: 0, udr: 0
   };
   
   // Stat scaling based on level
   const g = baseConfig.growth;
   const levelsGained = person.level - 1;
+  
+  // Introduce exponential scaling curve to balance natural growth against 1.5^x equipment scaling.
+  // Mild 1.3 factor results in ~10.6x magnifier at Lv.10, preserving late-game class identities.
+  const scaleCurve = Math.pow(1.3, levelsGained);
+  
   if (g) {
-    eff.maxHp = Math.floor(eff.maxHp + levelsGained * (g.hp || 0));
-    eff.maxMp = Math.floor(eff.maxMp + levelsGained * (g.mp || 0));
-    eff.atk = Math.floor(eff.atk + levelsGained * (g.atk || 0));
-    eff.def = Math.floor(eff.def + levelsGained * (g.def || 0));
-    eff.matk = Math.floor(eff.matk + levelsGained * (g.matk || 0));
-    eff.mdef = Math.floor(eff.mdef + levelsGained * (g.mdef || 0));
+    eff.maxHp = Math.floor(eff.maxHp + levelsGained * (g.hp || 0) * scaleCurve);
+    eff.maxMp = Math.floor(eff.maxMp + levelsGained * (g.mp || 0) * scaleCurve);
+    eff.atk = Math.floor(eff.atk + levelsGained * (g.atk || 0) * scaleCurve);
+    eff.def = Math.floor(eff.def + levelsGained * (g.def || 0) * scaleCurve);
+    eff.matk = Math.floor(eff.matk + levelsGained * (g.matk || 0) * scaleCurve);
+    eff.mdef = Math.floor(eff.mdef + levelsGained * (g.mdef || 0) * scaleCurve);
+    
+    // Percentages and Speed stay linear to avoid breaking game caps
     eff.spd = +(eff.spd + levelsGained * (g.spd || 0)).toFixed(2);
     eff.hit = +(eff.hit + levelsGained * (g.hit || 0)).toFixed(2);
     eff.evasion = +(eff.evasion + levelsGained * (g.evasion || 0)).toFixed(2);
     eff.critRate = +(eff.critRate + levelsGained * (g.critRate || 0)).toFixed(2);
-    eff.lucky = eff.lucky + levelsGained * (g.lucky || 0);
+    
+    // Luck gets a moderate compound boost
+    eff.lucky = Math.floor(eff.lucky + levelsGained * (g.lucky || 0) * (1 + levelsGained * 0.08));
   } else {
     const lvlMult = 1 + levelsGained * 0.2;
     eff.maxHp = Math.floor(eff.maxHp * lvlMult);
@@ -2311,19 +2726,27 @@ window.calcEffStats = function(person) {
       if (!item) return;
     // main stat
     if (item.mainStat && item.mainStatVal) {
-      if (eff[item.mainStat] !== undefined) eff[item.mainStat] += item.mainStatVal;
+      if (eff[item.mainStat] !== undefined) {
+        eff[item.mainStat] += item.mainStatVal;
+        // CRITICAL FIX: If it boosts hp/mp, MUST mirror to maxHp/maxMp to increase the actual stat caps!
+        if (item.mainStat === "hp") eff.maxHp += item.mainStatVal;
+        if (item.mainStat === "mp") eff.maxMp += item.mainStatVal;
+      }
     }
     // extra stats
     if (item.extras) {
       Object.entries(item.extras).forEach(([stat, val]) => {
         if (eff[stat] !== undefined) {
           // Normal stats are whole numbers, percentages are stored as 1-100 integers but we need them as 0.01
-          if (["hit", "evasion", "critRate"].includes(stat)) {
+          if (["hit", "evasion", "critRate", "pdr", "mdr", "udr"].includes(stat)) {
             eff[stat] += val / 100;
           } else if (stat === "critDmg") {
             eff[stat] += val / 100; // e.g. +50 critDmg -> +0.5x
           } else {
             eff[stat] += val;
+            // CRITICAL FIX: Also mirror extra hp/mp stats onto actual cap variables!
+            if (stat === "hp") eff.maxHp += val;
+            if (stat === "mp") eff.maxMp += val;
           }
         }
       });
@@ -2339,6 +2762,10 @@ window.calcEffStats = function(person) {
   eff.hit = Math.min(1.0, eff.hit); // Max 100%
   eff.evasion = Math.min(0.9, eff.evasion); // Max 90%
   eff.critRate = Math.min(1.0, eff.critRate); // Max 100%
+  // Cap Damage Reduction to prevent total immortality (Max 75%)
+  eff.pdr = Math.min(0.75, eff.pdr);
+  eff.mdr = Math.min(0.75, eff.mdr);
+  eff.udr = Math.min(0.75, eff.udr);
   return eff;
 }
 
@@ -2380,6 +2807,11 @@ function generateItem(level, rarityKey = "normal", slot = null) {
         statVal = +(0.1 * levelScale * (Math.random() * 0.5 + 0.5)).toFixed(2);
       } else if (randomStat.includes("lifesteal")) {
         statVal = Math.ceil(2 * levelScale * (Math.random() * 0.5 + 0.5));
+      } else if (["pdr", "mdr", "udr"].includes(randomStat)) {
+        // DR scaling: milder curves to ensure late game feels impactful but doesn't break game limits
+        const baseFactor = randomStat === "udr" ? 1.0 : 1.5;
+        statVal = Math.ceil(baseFactor * Math.pow(1.25, level - 1) * (Math.random() * 0.5 + 0.5));
+        statVal = Math.min(randomStat === "udr" ? 12 : 18, statVal); // Safe limit cap per single piece roll
       } else {
         statVal = Math.ceil(3 * levelScale * (Math.random() * 0.5 + 0.5));
       }
@@ -2416,6 +2848,17 @@ document.querySelectorAll(".buy-eq-btn").forEach(btn => {
 });
 
 // --- Secret Shop Management ---
+function checkAndResetShopRefresh() {
+  const today = new Date().toLocaleDateString();
+  if (!state.secretShop) {
+    state.secretShop = { items: [], lastLevel: 1, refreshCount: 0, lastRefreshDate: today };
+  }
+  if (state.secretShop.lastRefreshDate !== today) {
+    state.secretShop.lastRefreshDate = today;
+    state.secretShop.refreshCount = 0;
+  }
+}
+
 function getSecretRefreshCost(level) {
   return Math.max(5, level * 2);
 }
@@ -2432,6 +2875,7 @@ function getSecretShopMithrilCost(level, rarity) {
 }
 
 function rollSecretShop(isInit = false) {
+  checkAndResetShopRefresh();
   const level = secretShopLevelSelect ? parseInt(secretShopLevelSelect.value) : 1;
   state.secretShop.lastLevel = level;
   const items = [];
@@ -2539,7 +2983,16 @@ window.renderSecretShop = function() {
   
   const curLevel = secretShopLevelSelect ? parseInt(secretShopLevelSelect.value) : 1;
   const refreshCost = getSecretRefreshCost(curLevel);
-  if (secretRefreshCostText) secretRefreshCostText.textContent = `💠 ${refreshCost}`;
+  
+  checkAndResetShopRefresh();
+  const dailyUsed = state.secretShop.refreshCount || 0;
+  if (secretRefreshCostText) {
+    if (dailyUsed >= 10) {
+      secretRefreshCostText.textContent = "📝 英文挑戰 (獲得額外免費刷新)";
+    } else {
+      secretRefreshCostText.textContent = `🔁 刷新貨架 (💠 ${refreshCost} / 剩 ${10 - dailyUsed}次)`;
+    }
+  }
   
   // If items list is empty, auto-roll one!
   if (!state.secretShop.items || state.secretShop.items.length === 0) {
@@ -2557,12 +3010,13 @@ window.renderSecretShop = function() {
     card.style.borderColor = `${rColor}50`;
     
     // Icon and tags
-    const icon = getSlotIcon(item.slot);
+    const icon = getSlotIcon(item.slot, item.level);
     
     // Generate stats HTML strings
     let statsHtml = `<div class="secret-item-main-stat">+ ${gameConfig.eqSpecs.statNames[item.mainStat]}: ${item.mainStatVal}</div>`;
     Object.entries(item.extras).forEach(([key, val]) => {
-      statsHtml += `<div class="secret-item-extra-stat">+ ${gameConfig.eqSpecs.statNames[key]}: ${val}${key.includes('lifesteal') ? '%' : ''}</div>`;
+      const isPct = ['hit', 'evasion', 'critRate', 'critDmg', 'lifesteal', 'mlifesteal', 'pdr', 'mdr', 'udr'].includes(key);
+      statsHtml += `<div class="secret-item-extra-stat">+ ${gameConfig.eqSpecs.statNames[key]}: ${val}${isPct ? '%' : ''}</div>`;
     });
     
     let buyBtnHtml = `💰 ${cost.toLocaleString()}`;
@@ -2625,6 +3079,15 @@ window.renderSecretShop = function() {
 // Refresh button handler
 if (btnRefreshSecretShop) {
   btnRefreshSecretShop.addEventListener("click", () => {
+    checkAndResetShopRefresh();
+    const dailyUsed = state.secretShop.refreshCount || 0;
+    
+    if (dailyUsed >= 10) {
+      // Daily 10 limit hit: Redirect to English scholar exam for FREE refreshes!
+      window.openExamModal(null, 'englishShop', null);
+      return;
+    }
+    
     const level = parseInt(secretShopLevelSelect.value);
     const cost = getSecretRefreshCost(level);
     const currentMithril = state.mithril || 0;
@@ -2635,6 +3098,9 @@ if (btnRefreshSecretShop) {
     }
     
     state.mithril = currentMithril - cost;
+    if (!state.secretShop.refreshCount) state.secretShop.refreshCount = 0;
+    state.secretShop.refreshCount++;
+    
     rollSecretShop(false);
     renderSecretShop();
     updateUI();
@@ -2646,7 +3112,16 @@ if (secretShopLevelSelect) {
   secretShopLevelSelect.addEventListener("change", () => {
     const level = parseInt(secretShopLevelSelect.value);
     const cost = getSecretRefreshCost(level);
-    if (secretRefreshCostText) secretRefreshCostText.textContent = `💠 ${cost}`;
+    
+    checkAndResetShopRefresh();
+    const dailyUsed = state.secretShop.refreshCount || 0;
+    if (secretRefreshCostText) {
+      if (dailyUsed >= 10) {
+        secretRefreshCostText.textContent = "📝 英文挑戰 (獲得額外免費刷新)";
+      } else {
+        secretRefreshCostText.textContent = `🔁 刷新貨架 (💠 ${cost} / 剩 ${10 - dailyUsed}次)`;
+      }
+    }
   });
 }
 
@@ -2665,9 +3140,18 @@ function getHeroIcon(k) {
   return icons[k] || '👤';
 }
 
-function getSlotIcon(s) {
-  const i = { rhand:'🗡️', lhand:'🛡️', helm:'🪖', body:'🥋', pants:'👖', shoes:'👞' };
-  return i[s] || '❓';
+function getSlotIcon(s, level = 1) {
+  const tier1 = { rhand:'🗡️', lhand:'🛡️', helm:'🪖', body:'🥋', pants:'👖', shoes:'👞' };
+  const tier2 = { rhand:'⚔️', lhand:'🪞', helm:'🥽', body:'🧥', pants:'🩳', shoes:'🥾' };
+  const tier3 = { rhand:'🔱', lhand:'🔮', helm:'👑', body:'🦸', pants:'🦿', shoes:'🚀' };
+  
+  let set = tier1;
+  if (level >= 8) {
+    set = tier3;
+  } else if (level >= 5) {
+    set = tier2;
+  }
+  return set[s] || '❓';
 }
 
 // Render inventory grid
@@ -2688,31 +3172,40 @@ window.renderInventory = function() {
     el.style.boxShadow = `inset 0 0 8px ${gameConfig.eqSpecs.rarities[item.rarity].color}40`;
     
     // Icon lookup
-    let icon = getSlotIcon(item.slot);
+    let icon = getSlotIcon(item.slot, item.level);
     
     el.innerHTML = `${icon}<span class="item-lv-tag">L${item.level}</span>`;
     
     // Generate detail string
     let title = `${item.name}\n[${gameConfig.eqSpecs.slots[item.slot].name}]\n+ ${gameConfig.eqSpecs.statNames[item.mainStat]}: ${item.mainStatVal}`;
     Object.entries(item.extras).forEach(([k, v]) => {
-      title += `\n+ ${gameConfig.eqSpecs.statNames[k]}: ${v}${k.includes('lifesteal') ? '%' : ''}`;
+      const isPct = ['hit', 'evasion', 'critRate', 'critDmg', 'lifesteal', 'mlifesteal', 'pdr', 'mdr', 'udr'].includes(k);
+      title += `\n+ ${gameConfig.eqSpecs.statNames[k]}: ${v}${isPct ? '%' : ''}`;
     });
     title += "\n\n👉 點擊裝備 / 雙擊販售";
     
     el.title = title;
     
-    // Handle Equip selection
+    // Handle Equip selection / Double-click to sell debounce
+    let clickTimer = null;
     el.addEventListener("click", () => {
-      window.openEquipModal(index);
+      clickTimer = setTimeout(() => {
+        window.openEquipModal(index);
+      }, 220); // 220ms window for potential double click
     });
 
     // Handle sell
     el.addEventListener("dblclick", (e) => {
       e.stopPropagation();
-      const sellVal = Math.ceil(gameConfig.eqSpecs.price[item.level] * 0.3);
+      if (clickTimer) {
+        clearTimeout(clickTimer);
+        clickTimer = null;
+      }
+      const basePrice = gameConfig.eqSpecs.price[item.level] || 100;
+      const sellVal = Math.ceil(basePrice * 0.3);
       state.inventory.splice(index, 1);
       state.money += sellVal;
-      showToast(`💰 賣出裝備獲得 ${sellVal}`, "info");
+      showToast(`💰 賣出裝備獲得 ${window.formatNumberShort(sellVal)}`, "info");
       renderInventory();
       updateUI();
     });
@@ -2845,7 +3338,7 @@ window.openUnequipModal = function(personId, slotKey) {
   const rarCfg = gameConfig.eqSpecs.rarities[item.rarity];
   card.style.borderColor = rarCfg.color;
   
-  icon.textContent = getSlotIcon(slotKey);
+  icon.textContent = getSlotIcon(slotKey, item.level);
   title.textContent = item.name;
   title.style.color = rarCfg.color;
   
@@ -2874,10 +3367,31 @@ window.openUnequipModal = function(personId, slotKey) {
   modal.style.display = "flex";
 };
 
+function assignCombatRows(combatParty) {
+  const melee = combatParty.filter(p => !isRangedHero(p.jobClass));
+  const ranged = combatParty.filter(p => isRangedHero(p.jobClass));
+  
+  // Up to 3 melee units in front row, rest (other melee + all ranged) in back row
+  const frontList = melee.slice(0, 3);
+  const backList = [...melee.slice(3), ...ranged];
+  
+  frontList.forEach(p => p.isFrontRow = true);
+  backList.forEach(p => p.isFrontRow = false);
+  
+  return { frontList, backList };
+}
+
 // Render Hero sheets (updates stats & paperdoll display)
 function updateHeroSheets() {
-  // Sort population descending by level globally so all displays align
-  state.population.sort((a, b) => b.level - a.level);
+  // Priority sorting: 1st prioritize active Combat assignment, 2nd descending by level
+  state.population.sort((a, b) => {
+    const aCombat = a.assignment === 'combat' ? 1 : 0;
+    const bCombat = b.assignment === 'combat' ? 1 : 0;
+    if (aCombat !== bCombat) {
+      return bCombat - aCombat;
+    }
+    return b.level - a.level;
+  });
 
   const guildRoster = document.getElementById("guildRoster");
   if (!guildRoster) return;
@@ -2911,6 +3425,32 @@ function updateHeroSheets() {
     card.id = `prof-${p.id}`;
     
     const eff = calcEffStats(p);
+    const baseEff = calcEffStats({ ...p, eq: null });
+    
+    // Helper to split rendering: Base Value (White) + Equipment Bonus (Emerald Green)
+    const formatStatDiff = (key, isPct = false, fixed = 0) => {
+      const total = eff[key] || 0;
+      const base = baseEff[key] || 0;
+      if (isPct) {
+        const baseVal = Math.round(base * 100);
+        const totalVal = Math.round(total * 100);
+        const diff = totalVal - baseVal;
+        if (diff > 0) {
+          return `${baseVal}% <span style="color: #34d399; font-size: 0.62rem; font-weight: bold;">(+${diff}%)</span>`;
+        }
+        return `${totalVal}%`;
+      } else {
+        const baseVal = Number(base.toFixed(fixed));
+        const totalVal = Number(total.toFixed(fixed));
+        const diff = Number((totalVal - baseVal).toFixed(fixed));
+        if (diff > 0) {
+          const diffStr = fixed > 0 ? diff.toFixed(fixed) : diff;
+          return `${baseVal} <span style="color: #34d399; font-size: 0.62rem; font-weight: bold;">(+${diffStr})</span>`;
+        }
+        return fixed > 0 ? totalVal.toFixed(fixed) : totalVal;
+      }
+    };
+
     const genderSym = p.gender === 'female' ? '♀️' : '♂️';
     const faithSym = p.faith ? '✨' : '🪐';
     
@@ -3014,6 +3554,13 @@ function updateHeroSheets() {
         `;
       }
 
+      const combatBtnHtml = p.assignment === 'hospital' ? '' : `
+        <button class="ctrl-btn" style="flex: 1; padding: 0.25rem; font-size: 0.7rem; font-weight: bold; border-radius: 4px; border: none; background: ${p.assignment === 'combat' ? '#4b5563' : '#3b82f6'}; color: white; cursor: pointer; transition: all 0.2s;" 
+          onclick="window.changeResidentAssignment('${p.id}', '${p.assignment === 'combat' ? 'idle' : 'combat'}')">
+          ${p.assignment === 'combat' ? '🛡️ 召回' : '⚔️ 出征'}
+        </button>
+      `;
+
       html += `
           <div class="hp-mp-roster" style="margin-top: 0.4rem; display: flex; flex-direction: column; gap: 3px; width: 100%;">
             <div class="bar-wrapper" style="height: 12px;">
@@ -3025,6 +3572,13 @@ function updateHeroSheets() {
               <span class="bar-text" style="font-size: 0.65rem; line-height: 12px;">MP ${Math.floor(p.mp)}/${eff.maxMp}</span>
             </div>
             ${healBtnHtml}
+            <div style="display: flex; gap: 4px; margin-top: 2px; width: 100%;">
+              ${combatBtnHtml}
+              <button class="ctrl-btn" style="flex: 1; padding: 0.25rem; font-size: 0.7rem; font-weight: bold; border-radius: 4px; border: none; background: #ef4444; color: white; cursor: pointer; transition: all 0.2s;"
+                onclick="window.exileResident('${p.id}')">
+                🥾 流放
+              </button>
+            </div>
           </div>
       `;
     }
@@ -3038,15 +3592,18 @@ function updateHeroSheets() {
       if (state.tech.appraisalTech) {
         html += `
           <div class="prof-stats" style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.25rem;">
-            <span>⚔️ 物攻: <span style="float:right">${eff.atk}</span></span>
-            <span>🛡️ 物防: <span style="float:right">${eff.def}</span></span>
-            <span>🪄 魔攻: <span style="float:right">${eff.matk}</span></span>
-            <span>🔮 魔防: <span style="float:right">${eff.mdef}</span></span>
-            <span>⚡ 速度: <span style="float:right">${eff.spd.toFixed(1)}</span></span>
-            <span>🎯 命中: <span style="float:right">${(eff.hit * 100).toFixed(0)}%</span></span>
-            <span>💨 閃避: <span style="float:right">${(eff.evasion * 100).toFixed(0)}%</span></span>
-            <span>💥 暴擊: <span style="float:right">${(eff.critRate * 100).toFixed(0)}%</span></span>
-            <span>🍀 幸運: <span style="float:right">${eff.lucky}</span></span>
+            <span>⚔️ 物攻: <span style="float:right">${formatStatDiff('atk')}</span></span>
+            <span>🛡️ 物防: <span style="float:right">${formatStatDiff('def')}</span></span>
+            <span>🪄 魔攻: <span style="float:right">${formatStatDiff('matk')}</span></span>
+            <span>🔮 魔防: <span style="float:right">${formatStatDiff('mdef')}</span></span>
+            <span>⚡ 速度: <span style="float:right">${formatStatDiff('spd', false, 1)}</span></span>
+            <span>🎯 命中: <span style="float:right">${formatStatDiff('hit', true)}</span></span>
+            <span>💨 閃避: <span style="float:right">${formatStatDiff('evasion', true)}</span></span>
+            <span>💥 暴擊: <span style="float:right">${formatStatDiff('critRate', true)}</span></span>
+            <span>🍀 幸運: <span style="float:right">${formatStatDiff('lucky')}</span></span>
+            ${eff.pdr > 0 ? `<span style="color:#10b981;">🛡️ 物理免傷: <span style="float:right">${formatStatDiff('pdr', true)}</span></span>` : ''}
+            ${eff.mdr > 0 ? `<span style="color:#a855f7;">🔮 魔法免傷: <span style="float:right">${formatStatDiff('mdr', true)}</span></span>` : ''}
+            ${eff.udr > 0 ? `<span style="color:#fbbf24; font-weight:bold;">🔰 全能免傷: <span style="float:right">${formatStatDiff('udr', true)}</span></span>` : ''}
           </div>
           ${(() => {
             if (p.jobClass === "novice") {
@@ -3066,7 +3623,11 @@ function updateHeroSheets() {
             return "";
           })()}
           <div class="paperdoll" style="display:grid;">
-            ${['rhand','lhand','helm','body','pants','shoes'].map(slot => `<div class="eq-slot" data-hero="${p.id}" data-slot="${slot}" title="${gameConfig.eqSpecs.slots[slot].name}">${getSlotIcon(slot)}</div>`).join('')}
+            ${['rhand','lhand','helm','body','pants','shoes'].map(slot => {
+              const eqItem = p.eq[slot];
+              const icon = eqItem ? getSlotIcon(slot, eqItem.level) : getSlotIcon(slot);
+              return `<div class="eq-slot" data-hero="${p.id}" data-slot="${slot}" title="${gameConfig.eqSpecs.slots[slot].name}">${icon}</div>`;
+            }).join('')}
           </div>
         `;
       } else {
@@ -3089,7 +3650,14 @@ function updateHeroSheets() {
       if (item) {
         slotEl.classList.add("equipped");
         slotEl.style.borderColor = gameConfig.eqSpecs.rarities[item.rarity].color;
-        slotEl.title = `${item.name}\n+ ${gameConfig.eqSpecs.statNames[item.mainStat]}: ${item.mainStatVal}`;
+        let paperdollTitle = `${item.name}\n+ ${gameConfig.eqSpecs.statNames[item.mainStat]}: ${item.mainStatVal}`;
+        if (item.extras) {
+          Object.entries(item.extras).forEach(([k, v]) => {
+            const isPct = ['hit', 'evasion', 'critRate', 'critDmg', 'lifesteal', 'mlifesteal', 'pdr', 'mdr', 'udr'].includes(k);
+            paperdollTitle += `\n+ ${gameConfig.eqSpecs.statNames[k]}: ${v}${isPct ? '%' : ''}`;
+          });
+        }
+        slotEl.title = paperdollTitle;
       }
       slotEl.onclick = () => {
         if (item) {
@@ -3098,50 +3666,83 @@ function updateHeroSheets() {
       };
     });
     
-    // 2. Render in Combat Party
-    if (partyGroup && p.assignment === 'combat') {
-      const effStats = calcEffStats(p);
-      const unit = document.createElement("div");
-      
-      const isFocused = combatState.focusedHeroId === p.id;
-      unit.className = `combat-unit ${isFocused ? 'focused-hero' : ''}`;
-      unit.id = `unit-${p.id}`;
-      unit.style.cursor = p.hp > 0 ? "pointer" : "not-allowed";
-      
-      // Initialize combat temp stats if not present
-      if (typeof p.hp === 'undefined') { p.hp = effStats.maxHp; }
-      if (typeof p.mp === 'undefined') { p.mp = effStats.maxMp; }
-      // Ensure HP isn't over max due to unequip
-      p.hp = Math.min(p.hp, effStats.maxHp);
-      p.mp = Math.min(p.mp, effStats.maxMp);
-
-      unit.innerHTML = `
-        ${isFocused ? '<span class="combat-focus-badge" title="正在控制此英雄施展手勢法術">🎯</span>' : ''}
-        <div class="unit-header">
-          <span class="unit-name" style="${isFocused ? 'color:#facc15; font-weight:bold;' : ''}">${p.name} Lv.<span id="b-${p.id}-lv">${p.level}</span></span>
-        </div>
-        <div class="stat-bars">
-          <div class="bar-wrapper"><div class="bar-fill bg-hp" id="b-${p.id}-hp-bar" style="width:${(p.hp/effStats.maxHp)*100}%"></div><span class="bar-text" id="b-${p.id}-hp-val">${Math.floor(p.hp)}/${effStats.maxHp}</span></div>
-          <div class="bar-wrapper"><div class="bar-fill bg-mp" id="b-${p.id}-mp-bar" style="width:${(p.mp/effStats.maxMp)*100}%"></div><span class="bar-text" id="b-${p.id}-mp-val">${Math.floor(p.mp)}/${effStats.maxMp}</span></div>
-          <div class="bar-wrapper atb-wrapper"><div class="bar-fill bg-atb" id="b-${p.id}-atb-bar" style="width:0%"></div></div>
-        </div>
-      `;
-      
-      // Handle clicking to focus this hero for spellcasting
-      unit.onclick = () => {
-        if (p.hp <= 0) {
-          showToast("❌ 無法控制已倒下的英雄！", "error");
-          return;
-        }
-        combatState.focusedHeroId = p.id;
-        showToast(`🎯 戰術指示：全力輔助【${p.name}】進行詠唱！`, "info");
-        updateHeroSheets(); // Redraw to reflect the focused ring immediately!
-      };
-
-      partyGroup.appendChild(unit);
-    }
-
   });
+
+  // 2. Render Combat Party
+  if (partyGroup) {
+    partyGroup.innerHTML = "";
+    
+    const backCol = document.createElement("div");
+    backCol.className = "battle-row-container";
+    backCol.id = "partyBackRow";
+    
+    const frontCol = document.createElement("div");
+    frontCol.className = "battle-row-container";
+    frontCol.id = "partyFrontRow";
+    
+    partyGroup.appendChild(backCol);
+    partyGroup.appendChild(frontCol);
+    
+    const combatParty = state.population.filter(p => p.assignment === 'combat');
+    const { frontList, backList } = assignCombatRows(combatParty);
+    
+    const renderToCol = (list, container) => {
+      list.forEach(p => {
+        const effStats = calcEffStats(p);
+        const unit = document.createElement("div");
+        
+        const isFocused = combatState.focusedHeroId === p.id;
+        unit.className = `combat-unit ${isFocused ? 'focused-hero' : ''}`;
+        unit.id = `unit-${p.id}`;
+        unit.style.cursor = p.hp > 0 ? "pointer" : "not-allowed";
+        unit.style.position = "relative";
+        
+        if (typeof p.hp === 'undefined') { p.hp = effStats.maxHp; }
+        if (typeof p.mp === 'undefined') { p.mp = effStats.maxMp; }
+        p.hp = Math.min(p.hp, effStats.maxHp);
+        p.mp = Math.min(p.mp, effStats.maxMp);
+
+        const rangeTag = isRangedHero(p.jobClass) ? '🏹' : '🛡️';
+        const rowTag = p.isFrontRow ? '前排' : '後排';
+
+        unit.innerHTML = `
+          ${isFocused ? '<span class="combat-focus-badge" title="正在控制此英雄施展手勢法術">🎯</span>' : ''}
+          <div class="unit-header">
+            <span class="unit-name" style="${isFocused ? 'color:#facc15; font-weight:bold;' : ''} font-size: 0.75rem; display:flex; justify-content:space-between; width:100%;">
+              <span>${rangeTag} ${p.name}</span>
+              <span style="opacity:0.7; font-size:0.65rem;">Lv.<span id="b-${p.id}-lv">${p.level}</span></span>
+            </span>
+          </div>
+          <div class="stat-bars">
+            <div class="bar-wrapper"><div class="bar-fill bg-hp" id="b-${p.id}-hp-bar" style="width:${(p.hp/effStats.maxHp)*100}%"></div><span class="bar-text" id="b-${p.id}-hp-val">${Math.floor(p.hp)}/${effStats.maxHp}</span></div>
+            <div class="bar-wrapper"><div class="bar-fill bg-mp" id="b-${p.id}-mp-bar" style="width:${(p.mp/effStats.maxMp)*100}%"></div><span class="bar-text" id="b-${p.id}-mp-val">${Math.floor(p.mp)}/${effStats.maxMp}</span></div>
+            <div class="bar-wrapper atb-wrapper"><div class="bar-fill bg-atb" id="b-${p.id}-atb-bar" style="width:0%"></div></div>
+          </div>
+          <div style="position:absolute; bottom:2px; right:6px; font-size: 0.55rem; color:#94a3b8; font-style:italic; opacity:0.8;">${rowTag}</div>
+        `;
+        
+        unit.onclick = () => {
+          if (p.hp <= 0) {
+            showToast("❌ 無法控制已倒下的英雄！", "error");
+            return;
+          }
+          combatState.focusedHeroId = p.id;
+          showToast(`🎯 戰術指示：全力輔助【${p.name}】進行詠唱！`, "info");
+          updateHeroSheets();
+        };
+
+        container.appendChild(unit);
+      });
+    };
+    
+    renderToCol(backList, backCol);
+    renderToCol(frontList, frontCol);
+  }
+}
+
+function isRangedHero(jobClass) {
+  const ranged = ['archer', 'gunner', 'mage', 'wizard', 'taoist'];
+  return ranged.includes(jobClass);
 }
 
 // ==========================================
@@ -3154,7 +3755,8 @@ let combatState = {
   bossType: "greed",
   enemy: null, // currently fighting object
   party: [], // keys like "warrior", "mage"
-  focusedHeroId: null // UID of the hero targeted/controlled by user
+  focusedHeroId: null, // UID of the hero targeted/controlled by user
+  aiMode: 'basic' // 'basic' | 'balanced' | 'defensive' | 'offensive'
 };
 
 
@@ -3189,8 +3791,49 @@ document.getElementById("btnQuestBoss")?.addEventListener("click", () => {
 });
 document.getElementById("btnQuestRetreat")?.addEventListener("click", stopQuest);
 
+document.getElementById("devAiModeSelect")?.addEventListener("change", (e) => {
+  combatState.aiMode = e.target.value;
+  updateAiModeUI();
+  showToast(`🧠 戰術已手動調整為：${e.target.options[e.target.selectedIndex].text}`, "info");
+});
+
+function updateAiModeUI() {
+  const txtEl = document.getElementById("aiModeText");
+  if (!txtEl) return;
+  
+  const labelMap = {
+    basic: { text: "🛑 純普攻模式 (待結印)", color: "#a1a1aa" },
+    balanced: { text: "⚖️ 平衡戰術 AI (運作中)", color: "#60a5fa" },
+    defensive: { text: "🛡️ 守護防衛 AI (運作中)", color: "#34d399" },
+    offensive: { text: "⚔️ 強攻狂暴 AI (運作中)", color: "#f87171" }
+  };
+  
+  const mode = combatState.aiMode || 'basic';
+  txtEl.innerHTML = labelMap[mode].text;
+  txtEl.style.color = labelMap[mode].color;
+  
+  const selEl = document.getElementById("devAiModeSelect");
+  if (selEl && selEl.value !== mode) selEl.value = mode;
+}
+
 function startQuest(type) {
-  if (combatState.active) return;
+  // Interrupt check for gated high-level hunts
+  if (combatState.active) {
+    if (type === 'hunt' && state.huntGateCount >= 10) {
+      window.openExamModal(null, 'scienceHunt', null);
+      showToast("📖 請先答對自然科安全考核測驗以恢復掛機！", "warning");
+      return;
+    }
+    return;
+  }
+  
+  const huntLvlEl = document.getElementById("targetHuntLevel");
+  const selectedHuntLevel = huntLvlEl ? parseInt(huntLvlEl.value) : 1;
+  if (type === 'hunt' && selectedHuntLevel >= 7 && state.huntGateCount >= 10) {
+    window.openExamModal(null, 'scienceHunt', null);
+    showToast("📖 請先答對自然科安全考核測驗！", "warning");
+    return;
+  }
   
   const combatParty = state.population.filter(p => p.assignment === 'combat');
   
@@ -3201,12 +3844,12 @@ function startQuest(type) {
   
   combatState.active = true;
   combatState.target = type;
-  
-  // Read user selected hunt level
-  const huntLvlEl = document.getElementById("targetHuntLevel");
-  combatState.huntLevel = huntLvlEl ? parseInt(huntLvlEl.value) : 1;
+  combatState.huntLevel = selectedHuntLevel;
 
   combatState.party = combatParty.map(p => p.id);
+  
+  // Define Front/Back rows before battle loop starts
+  assignCombatRows(combatParty);
   
   // Reset dynamic fight parameters for the selected party
   combatParty.forEach(p => {
@@ -3220,6 +3863,7 @@ function startQuest(type) {
   combatState.focusedHeroId = combatParty[0].id;
   
   spawnEnemy();
+  updateAiModeUI();
 
   
   const btnQuestHunt = document.getElementById("btnQuestHunt");
@@ -3276,6 +3920,33 @@ function stopQuest() {
 }
 
 
+function getValidTargets(attackerSide, isRanged) {
+  let candidates = [];
+  if (attackerSide === 'hero') {
+    candidates = combatState.enemies.filter(e => e.hp > 0);
+  } else {
+    const combatParty = state.population.filter(p => combatState.party.includes(p.id));
+    candidates = combatParty.filter(p => p.hp > 0);
+  }
+  
+  if (candidates.length === 0) return [];
+  
+  if (isRanged) return candidates;
+  
+  const frontRowTargets = candidates.filter(u => u.isFrontRow);
+  if (frontRowTargets.length > 0) {
+    return frontRowTargets;
+  }
+  return candidates;
+}
+
+function pickBestTarget(candidates) {
+  if (!candidates || candidates.length === 0) return null;
+  const sorted = [...candidates].sort((a, b) => a.hp - b.hp);
+  return sorted[0];
+}
+
+
 function spawnEnemy() {
   let avgLvl = 1;
   if (combatState.target === "hunt") {
@@ -3315,62 +3986,107 @@ function spawnEnemy() {
         maxHp: finalHp,
         atk: Math.floor(mobCfg.base.atk * scale * diffCfg.enemyAtk),
         def: Math.floor(mobCfg.base.def * scale),
-        matk: Math.floor(mobCfg.base.matk * scale),
+        matk: Math.floor(mobCfg.base.matk * scale * diffCfg.enemyAtk),
         mdef: Math.floor(mobCfg.base.mdef * scale),
         spd: mobCfg.base.spd + (avgLvl * mobCfg.scaling.spdPerLvl),
         atb: 0,
         rewardExp: Math.floor((mobCfg.scaling.rewardExpBase * avgLvl / mobCount) * diffCfg.expMoneyMod),
         rewardMoney: Math.floor((mobCfg.scaling.rewardMoneyBase * avgLvl / mobCount) * diffCfg.expMoneyMod),
-        isBoss: false
+        isBoss: false,
+        isFrontRow: i < 3, // First 3 are Front Row, remaining are Back Row
+        isRanged: i >= 3 && Math.random() < 0.5
       });
     }
   } else {
-    // Spawn multiple Bosses sequentially matching current state.bossLevel (1 to 3)
+    // Spawn Boss groups mapped sequentially by state.bossLevel (1 to 6)
     const bLevel = state.bossLevel || 1;
-    const roster = [
-      { key: "greed", id: "enemy-boss-greed" },
-      { key: "anger", id: "enemy-boss-anger" },
-      { key: "ignorance", id: "enemy-boss-ignorance" }
-    ];
+    let bossKeys = [];
     
-    const count = Math.min(3, bLevel);
-    for (let i = 0; i < count; i++) {
-      const bType = roster[i].key;
+    if (bLevel === 1) {
+      bossKeys = ["greed"];
+    } else if (bLevel === 2) {
+      bossKeys = ["greed", "anger"];
+    } else if (bLevel === 3) {
+      bossKeys = ["greed", "anger", "ignorance"];
+    } else if (bLevel === 4) {
+      // 2 greed, 2 anger, 2 ignorance
+      bossKeys = ["greed", "greed", "anger", "anger", "ignorance", "ignorance"];
+    } else if (bLevel === 5) {
+      // 4 ignorance
+      bossKeys = ["ignorance", "ignorance", "ignorance", "ignorance"];
+    } else {
+      // Lv.6+: 6 ignorance
+      bossKeys = ["ignorance", "ignorance", "ignorance", "ignorance", "ignorance", "ignorance"];
+    }
+    
+    bossKeys.forEach((bType, i) => {
       const bossCfg = gameConfig.combat.bosses[bType];
       if (bossCfg) {
         const finalBoss = JSON.parse(JSON.stringify(bossCfg));
         finalBoss.hp = Math.floor(finalBoss.hp * diffCfg.enemyHp);
         finalBoss.maxHp = Math.floor(finalBoss.maxHp * diffCfg.enemyHp);
         finalBoss.atk = Math.floor(finalBoss.atk * diffCfg.enemyAtk);
+        finalBoss.matk = Math.floor((finalBoss.matk || 0) * diffCfg.enemyAtk);
         if (finalBoss.rewardExp) finalBoss.rewardExp = Math.floor(finalBoss.rewardExp * diffCfg.expMoneyMod);
         if (finalBoss.rewardMoney) finalBoss.rewardMoney = Math.floor(finalBoss.rewardMoney * diffCfg.expMoneyMod);
         
         combatState.enemies.push({
           ...finalBoss,
-          id: roster[i].id,
+          id: `enemy-boss-${bType}-${i}`,
           atb: 0,
-          isBoss: true
+          isBoss: true,
+          isFrontRow: i < 3, // Stack first 3 in Front Row, remaining 3 in Back Row
+          isRanged: true
         });
       }
-    }
+    });
   }
   
-  // Render Enemies
-  combatState.enemies.forEach(e => {
-    if (!enemyGroup) return;
-    const unit = document.createElement("div");
-    unit.className = "combat-unit";
-    unit.id = e.id;
-    unit.innerHTML = `
-      <div class="unit-header"><span class="unit-name">${e.name}</span></div>
-      <div class="stat-bars" id="${e.id}-bars">
-        <div class="bar-wrapper"><div class="bar-fill bg-hp" id="${e.id}-hpBar" style="width:100%"></div><span class="bar-text" id="${e.id}-hpVal">${e.hp}/${e.maxHp}</span></div>
-        <div class="bar-wrapper atb-wrapper"><div class="bar-fill bg-atb" id="${e.id}-atbBar" style="width:0%"></div></div>
-      </div>
-      <div class="enemy-avatar" style="font-size:2rem; margin:0.2rem 0;">${e.avatar}</div>
-    `;
-    enemyGroup.appendChild(unit);
-  });
+  // Render Enemies to physical side columns
+  if (enemyGroup) {
+    enemyGroup.innerHTML = "";
+    
+    const frontCol = document.createElement("div");
+    frontCol.className = "battle-row-container";
+    frontCol.id = "enemyFrontRow";
+    
+    const backCol = document.createElement("div");
+    backCol.className = "battle-row-container";
+    backCol.id = "enemyBackRow";
+    
+    enemyGroup.appendChild(frontCol);
+    enemyGroup.appendChild(backCol);
+    
+    combatState.enemies.forEach(e => {
+      const unit = document.createElement("div");
+      unit.className = "combat-unit";
+      unit.id = e.id;
+      unit.style.position = "relative";
+      
+      const rowTag = e.isFrontRow ? '前排' : '後排';
+      const rangeTag = e.isRanged ? '🏹' : '🛡️';
+      
+      unit.innerHTML = `
+        <div class="unit-header">
+          <span class="unit-name" style="font-size: 0.75rem; display:flex; justify-content:space-between; width:100%;">
+            <span>${rangeTag} ${e.name}</span>
+          </span>
+        </div>
+        <div class="stat-bars" id="${e.id}-bars">
+          <div class="bar-wrapper"><div class="bar-fill bg-hp" id="${e.id}-hpBar" style="width:100%"></div><span class="bar-text" id="${e.id}-hpVal">${e.hp}/${e.maxHp}</span></div>
+          <div class="bar-wrapper atb-wrapper"><div class="bar-fill bg-atb" id="${e.id}-atbBar" style="width:0%"></div></div>
+        </div>
+        <div class="enemy-avatar" style="font-size:2rem; margin:0.1rem 0;">${e.avatar}</div>
+        <div style="position:absolute; bottom:2px; right:6px; font-size: 0.55rem; color:#94a3b8; font-style:italic; opacity:0.8;">${rowTag}</div>
+      `;
+      
+      if (e.isFrontRow) {
+        frontCol.appendChild(unit);
+      } else {
+        backCol.appendChild(unit);
+      }
+    });
+  }
 }
 
 // Main ATB Combat Engine Clock (Runs every 100ms)
@@ -3393,6 +4109,10 @@ function processCombatFrame() {
     if (!p || p.hp <= 0) return; // dead can't act
     const eff = calcEffStats(p);
     
+    // Passive combat MP regeneration (Runs every frame tick)
+    const mpRegen = 0.1 + (eff.matk * 0.01); // Scaled for approx 100ms clock interval
+    p.mp = Math.min(eff.maxMp, (p.mp || 0) + mpRegen);
+    
     if (p.atb === undefined) p.atb = 0;
     
     // Normal auto attacks execute at 100%
@@ -3410,15 +4130,332 @@ function processCombatFrame() {
   updateCombatBars();
 }
 
+function tryCastClassSkill(p, eff) {
+  if (combatState.aiMode === 'basic') return false; // In basic mode, heroes ONLY use normal attacks!
+  
+  // Find the lowest % HP ally for healing checks
+  const getLowestAlly = () => {
+    const party = state.population.filter(res => combatState.party.includes(res.id) && res.hp > 0);
+    if (party.length === 0) return null;
+    return party.sort((a, b) => {
+      const eA = calcEffStats(a);
+      const eB = calcEffStats(b);
+      return (a.hp / eA.maxHp) - (b.hp / eB.maxHp);
+    })[0];
+  };
+
+  // Unified helper to trigger damage flash animation
+  const flashEnemy = (eId) => {
+    const el = document.getElementById(eId);
+    if (el) {
+      el.classList.add("attack-anim");
+      setTimeout(() => el.classList.remove("attack-anim"), 150);
+    }
+  };
+
+  const job = p.jobClass || 'novice';
+  const isRanged = isRangedHero(job);
+  
+  // Boss scaling and non-faith suppression calculator helper
+  const calcBossAdjustments = (rawDmg, targetEnemy) => {
+    let finalDmg = rawDmg;
+    if (targetEnemy.isBoss) {
+      if (job === "monk") {
+        const mult = 3.0 + (p.level - 1) * 0.8;
+        finalDmg = Math.floor(finalDmg * mult);
+        logBattle(`💢 和尚爆發【降魔】真言！傷害加成 x${mult.toFixed(1)}！`, "log-item-buff");
+      } else if (job === "taoist") {
+        const mult = 2.0 + (p.level - 1) * 0.5;
+        finalDmg = Math.floor(finalDmg * mult);
+        logBattle(`☯️ 道士激發【天威】印記！傷害加成 x${mult.toFixed(1)}！`, "log-item-buff");
+      } else if (job === "paladin" || job === "priest") {
+        const mult = 2.5 + (p.level - 1) * 0.6;
+        finalDmg = Math.floor(finalDmg * mult);
+        logBattle(`✨ 聖光輝耀！傷害加成 x${mult.toFixed(1)}！`, "log-item-buff");
+      }
+      if (!p.faith) {
+        const diffCfg = DIFFICULTY_MULTIPLIERS[state.difficulty || 'normal'] || DIFFICULTY_MULTIPLIERS.normal;
+        finalDmg = Math.max(1, Math.floor(finalDmg * (diffCfg.nonFaithGiantDmgMod || 0.33)));
+      }
+    }
+    return finalDmg;
+  };
+
+  // Skill Dictionary
+  const skillMap = {
+    novice: { name: "初階斬擊", cost: 5, desc: "造成 1.2 倍物理傷害" },
+    warrior: { name: "聖劍裁決", cost: 20, desc: "前後排全體覆蓋 1.8 倍物理傷害！" },
+    barbarian: { name: "毀滅大風車", cost: 25, desc: "瘋狂橫掃前後排全體 2.5 倍物理傷害！" },
+    shieldWarrior: { name: "盾牌猛擊", cost: 15, desc: "物攻+防禦1.5倍碎盾傷害，擊退前排 30% ATB" },
+    rogue: { name: "致命背刺", cost: 20, desc: "2.5 倍必中物理暴擊" },
+    archer: { name: "穿透矢雨風暴", cost: 20, desc: "穿透敵陣，發射最多 6 次覆蓋全體每擊 1.2 倍物攻" },
+    gunner: { name: "狙擊爆頭", cost: 20, desc: "精準轟擊最虛弱目標 2.2 倍物理傷害 (遠程)" },
+    fighter: { name: "百裂神拳", cost: 20, desc: "狂暴重擊單體目標 3 次，每次 0.6 倍物攻" },
+    mage: { name: "爆裂火球", cost: 25, desc: "轟擊最虛弱敵人 2.0 倍魔法傷害 (遠程)" },
+    wizard: { name: "連鎖雷爆", cost: 35, desc: "轟擊所有可觸及敵人 1.2 倍魔法傷害 (遠程)" },
+    priest: { name: "神聖奇蹟", cost: 40, desc: "【全體救贖】回復全體 3x魔攻+20%HP，全體 ATB 充能 100%！" },
+    paladin: { name: "神績降臨", cost: 35, desc: "【天罰聖療】全體物魔混合 2x 傷害 + 吸取 30% ATB，我方全體 20% 大補！" },
+    taoist: { name: "萬劍歸宗", cost: 40, desc: "【降魔】全體 3.5x魔攻轟炸，對巨獸追加額外 10%最大HP 真實傷害！" },
+    monk: { name: "萬佛朝宗", cost: 35, desc: "【破法】單體 4x 物攻 (100%無視防禦)，並清空目標 100% ATB 行動條！" }
+  };
+
+  const skill = skillMap[job] || skillMap.novice;
+  if (p.mp < skill.cost) return false; // Not enough MP, execute normal attack
+
+  // 1. PRE-CHECK: Gather targets first
+  const validCandidates = getValidTargets('hero', isRanged);
+  const target = pickBestTarget(validCandidates); 
+
+  // 2. PRE-CHECK: Smart Priest Healing Logic
+  if (job === 'priest') {
+    const weakest = getLowestAlly();
+    if (!weakest) return false;
+    const wEff = calcEffStats(weakest);
+    const hpPct = weakest.hp / wEff.maxHp;
+    
+    let healThreshold = 0.85; // Balanced mode
+    if (combatState.aiMode === 'defensive') healThreshold = 0.95;
+    if (combatState.aiMode === 'offensive') healThreshold = 0.50;
+    
+    if (hpPct >= healThreshold) {
+      return false; // Skip healing to save MP and do normal attack instead
+    }
+  }
+
+  // 3. PRE-CHECK: Smart AOE Logic for Barbarian & Wizard
+  if (job === 'barbarian' || job === 'wizard') {
+    if (validCandidates.length < 2 && (combatState.aiMode === 'balanced' || combatState.aiMode === 'defensive')) {
+      return false; // Conserve MP by avoiding AOE on a single surviving target
+    }
+  }
+
+  // 4. PRE-CHECK: Edge case validation
+  if (!target && job !== "priest") {
+     return false;
+  }
+
+  // Validated! Execute Cast and deduct MP
+  p.mp -= skill.cost;
+  const logHeader = `<span style="color:#a855f7; font-weight:bold;">【${skill.name}】</span>`;
+
+  // Core branching logic for the skill actions
+  switch(job) {
+    case 'novice': {
+      let raw = Math.max(1, (eff.atk * 1.2) - target.def);
+      let final = calcBossAdjustments(raw, target);
+      logBattle(`⚔️ ${p.name} 發動 ${logHeader}，重擊 ${target.name} 造成 <b class="log-item-dmg">${Math.floor(final)}</b> 傷害。`);
+      target.hp -= Math.floor(final);
+      flashEnemy(target.id);
+      break;
+    }
+    case 'warrior': {
+      logBattle(`🗡️ ${p.name} 高舉聖劍，揮下 ${logHeader} 斬切戰場！`);
+      validCandidates.forEach(c => {
+        let raw = Math.max(1, (eff.atk * 1.8) - c.def);
+        let final = calcBossAdjustments(raw, c);
+        logBattle(`  💥 對 ${c.name} 造成 <span class="log-item-dmg">${Math.floor(final)}</span> 全體聖裁傷害。`);
+        c.hp -= Math.floor(final);
+        flashEnemy(c.id);
+      });
+      break;
+    }
+    case 'barbarian': {
+      logBattle(`🪓 ${p.name} 咆哮如雷化身鋼鐵風暴，瘋狂旋舞 ${logHeader}！`);
+      validCandidates.forEach(c => {
+        let raw = Math.max(1, (eff.atk * 2.5) - c.def);
+        let final = calcBossAdjustments(raw, c);
+        logBattle(`  🌀 狂暴氣旋對 ${c.name} 造成高達 <span class="log-item-dmg">${Math.floor(final)}</span> 絞碎傷害！`);
+        c.hp -= Math.floor(final);
+        flashEnemy(c.id);
+      });
+      break;
+    }
+    case 'shieldWarrior': {
+      let raw = Math.max(1, (eff.atk * 1.5 + eff.def * 1.5) - target.def);
+      let final = calcBossAdjustments(raw, target);
+      logBattle(`🛡️ ${p.name} 頂起山岳重盾，施展 ${logHeader} 痛擊 ${target.name} 造成 <b class="log-item-dmg">${Math.floor(final)}</b> 碎骨衝擊！`);
+      target.hp -= Math.floor(final);
+      flashEnemy(target.id);
+      
+      // Retaliation Shockwave: Reduce ATB of ALL front row enemies by 30%
+      const frontEnemies = combatState.enemies.filter(e => e.isFrontRow && e.hp > 0);
+      frontEnemies.forEach(fe => {
+        fe.atb = Math.max(0, (fe.atb || 0) - 30);
+      });
+      logBattle(`  💥 重盾震撼大地，將敵方前排全體行動條擊退 30%！`, "log-item-buff");
+      break;
+    }
+    case 'rogue': {
+      // Rogue bypasses standard evasion entirely (Bypasses Miss roll entirely)
+      let raw = Math.max(1, (eff.atk * 2.5) - target.def);
+      let final = calcBossAdjustments(raw, target);
+      logBattle(`👤 ${p.name} 閃身至死角施展 ${logHeader}，對 ${target.name} 造成致命必中的 <b style="color:#ef4444; font-size:1.2em;">CRIT!</b> <b class="log-item-dmg">${Math.floor(final)}</b> 傷害！`);
+      target.hp -= Math.floor(final);
+      flashEnemy(target.id);
+      break;
+    }
+    case 'archer': {
+      logBattle(`🏹 ${p.name} 拉開滿月巨弓射向高空，降下毀滅性 ${logHeader}！`);
+      const maxArrows = Math.min(6, validCandidates.length * 2); // Ensure high density coverage
+      for(let i = 0; i < maxArrows; i++) {
+        if (validCandidates.length === 0) break;
+        const rnd = validCandidates[Math.floor(Math.random() * validCandidates.length)];
+        let raw = Math.max(1, (eff.atk * 1.2) - rnd.def);
+        let final = calcBossAdjustments(raw, rnd);
+        logBattle(`  🎯 穿透箭矢直插 ${rnd.name}，造成 <span class="log-item-dmg">${Math.floor(final)}</span> 傷害。`);
+        rnd.hp -= Math.floor(final);
+        flashEnemy(rnd.id);
+        // In case target dies, remove it from candidate pool instantly
+        if(rnd.hp <= 0) {
+           const idx = validCandidates.findIndex(c => c.id === rnd.id);
+           if(idx > -1) validCandidates.splice(idx, 1);
+        }
+      }
+      break;
+    }
+    case 'gunner': {
+      let raw = Math.max(1, (eff.atk * 2.2) - target.def);
+      let final = calcBossAdjustments(raw, target);
+      logBattle(`💥 ${p.name} 扣下扳機施展 ${logHeader}，子彈爆頭擊穿 ${target.name} 造成 <b class="log-item-dmg">${Math.floor(final)}</b> 穿透傷害！`);
+      target.hp -= Math.floor(final);
+      flashEnemy(target.id);
+      break;
+    }
+    case 'fighter': {
+      logBattle(`👊 ${p.name} 氣勢如虹打出 ${logHeader}！`);
+      let count = 0;
+      const intervalId = setInterval(() => {
+        if (count >= 3 || target.hp <= 0) {
+          clearInterval(intervalId);
+          return;
+        }
+        let raw = Math.max(1, (eff.atk * 0.6) - target.def);
+        let final = calcBossAdjustments(raw, target);
+        logBattle(`  🤛 歐拉！對 ${target.name} 造成 <span class="log-item-dmg">${Math.floor(final)}</span> 打擊！`);
+        target.hp -= Math.floor(final);
+        flashEnemy(target.id);
+        count++;
+        checkBattleResolution();
+      }, 80);
+      break;
+    }
+    case 'mage': {
+      // Magic vs M.Def
+      let raw = Math.max(1, (eff.matk * 2.0) - target.mdef);
+      let final = calcBossAdjustments(raw, target);
+      logBattle(`🔥 ${p.name} 頌念咒文施展 ${logHeader}，熊熊烈焰吞噬 ${target.name} 造成 <b style="color:#f97316;" class="log-item-dmg">${Math.floor(final)}</b> 魔法傷害！`);
+      target.hp -= Math.floor(final);
+      flashEnemy(target.id);
+      break;
+    }
+    case 'wizard': {
+      logBattle(`⚡ ${p.name} 高舉法杖召喚 ${logHeader} 覆蓋整個戰場！`);
+      validCandidates.forEach(c => {
+        let raw = Math.max(1, (eff.matk * 1.2) - c.mdef);
+        let final = calcBossAdjustments(raw, c);
+        logBattle(`  ⛈️ 狂雷轟炸 ${c.name} 造成 <span style="color:#3b82f6;" class="log-item-dmg">${Math.floor(final)}</span> 電擊傷害。`);
+        c.hp -= Math.floor(final);
+        flashEnemy(c.id);
+      });
+      break;
+    }
+    case 'priest': {
+      logBattle(`⛪ ${p.name} 雙手合十施展 ${logHeader}，耀眼聖光普照全軍！`);
+      const aliveHeroes = state.population.filter(h => combatState.party.includes(h.id) && h.hp > 0);
+      aliveHeroes.forEach(h => {
+        const hEff = calcEffStats(h);
+        const healAmt = Math.floor(eff.matk * 3.0 + hEff.maxHp * 0.20);
+        h.hp = Math.min(hEff.maxHp, h.hp + healAmt);
+        h.atb = 100; // Instant 100% ATB fill for absolute annihilation!
+        
+        const card = document.getElementById(`prof-${h.id}`);
+        if (card) {
+          card.style.boxShadow = "0 0 15px #eab308";
+          setTimeout(() => card.style.boxShadow = "", 400);
+        }
+      });
+      logBattle(`  ✨ 全體隊友血量大補，且行動條 (ATB) 瞬間灌滿 100% 爆發！`, "log-item-buff");
+      break;
+    }
+    case 'paladin': {
+      logBattle(`✨ ${p.name} 躍向半空重擊地面施展 ${logHeader}，聖光光雨落滿全場！`);
+      validCandidates.forEach(c => {
+        let raw = Math.max(1, (eff.atk * 2.0 + eff.matk * 2.0) - c.def);
+        let final = calcBossAdjustments(raw, c);
+        logBattle(`  🔱 對 ${c.name} 造成 <span class="log-item-dmg">${Math.floor(final)}</span> 混合天罰，擊退其 30% ATB！`);
+        c.hp -= Math.floor(final);
+        c.atb = Math.max(0, (c.atb || 0) - 30); // Strong universal stun
+        flashEnemy(c.id);
+      });
+      
+      // Heal All Allies 20% Max HP
+      const aliveHeroes = state.population.filter(h => combatState.party.includes(h.id) && h.hp > 0);
+      aliveHeroes.forEach(h => {
+        const hEff = calcEffStats(h);
+        const healAmt = Math.floor(hEff.maxHp * 0.20);
+        h.hp = Math.min(hEff.maxHp, h.hp + healAmt);
+      });
+      logBattle(`  ❤️ 聖光回饋：我方全體隊友獲得 <b style="color:#22c55e;">+20% Max HP</b> 生命回復！`, "log-item-buff");
+      break;
+    }
+    case 'taoist': {
+      logBattle(`☯️ ${p.name} 祭起萬千黃符飛劍，引導 ${logHeader} 轟炸全體！`);
+      validCandidates.forEach(c => {
+        let raw = Math.max(1, (eff.matk * 3.5) - c.mdef);
+        let final = calcBossAdjustments(raw, c);
+        
+        let bonusStr = "";
+        if (c.isBoss) {
+          const bonus = Math.floor(c.maxHp * 0.10); // Gigantic 10% Max HP true damage
+          final += bonus;
+          bonusStr = ` (內含 <b style="color:#f43f5e;">+${bonus}</b> 巨獸真傷！)`;
+        }
+        
+        logBattle(`  ⚔️ 飛劍穿透 ${c.name} 造成 <span style="color:#eab308;" class="log-item-dmg">${Math.floor(final)}</span> 魔法傷害！${bonusStr}`);
+        c.hp -= Math.floor(final);
+        flashEnemy(c.id);
+      });
+      break;
+    }
+    case 'monk': {
+      // Fully bypass defense completely (Def = 0), and hard-reset target ATB!
+      let raw = Math.max(1, eff.atk * 4.0); 
+      let final = calcBossAdjustments(raw, target);
+      logBattle(`🧘 ${p.name} 雙目暴睜一掌施展 ${logHeader}，對 ${target.name} 造成 <b class="log-item-dmg">${Math.floor(final)}</b> 無防備重創！`);
+      target.hp -= Math.floor(final);
+      target.atb = 0; // CRITICAL FULL ATB RESET
+      logBattle(`  ✋ 萬佛朝宗：${target.name} 的行動進度條 (ATB) 遭強制歸零凍結！`, "log-item-dmg");
+      flashEnemy(target.id);
+      break;
+    }
+  }
+
+  // Universal lifesteal applies to all skill hits that are directly targeted
+  if (eff.lifesteal > 0 && job !== "priest" && job !== "barbarian" && job !== "wizard") {
+     // approximate heal based on final hit if scalar
+     // for simplicity, standard 10% max logic or omit to avoid scaling bloat
+  }
+
+  checkBattleResolution();
+  return true;
+}
+
 function heroExecuteAttack(pid) {
   const p = state.population.find(res => res.id === pid);
   if (!p) return;
   const eff = calcEffStats(p);
   
-  // Find a random alive enemy
-  const aliveEnemies = combatState.enemies.filter(e => e.hp > 0);
-  if (aliveEnemies.length === 0) return;
-  const enemy = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
+  // 1. Attempt Auto-Skill Casting (Consumes MP, performs effect, and aborts if successful)
+  if (tryCastClassSkill(p, eff)) {
+    return;
+  }
+  
+  // 2. Physical Standard Attack Targeting
+  const isRanged = isRangedHero(p.jobClass);
+  const candidates = getValidTargets('hero', isRanged);
+  const enemy = pickBestTarget(candidates);
+  
+  if (!enemy) return;
   
   // Calculate Hit / Miss
   const evasionChance = Math.max(0, (enemy.evasion||0.05) - (eff.hit - 1.0));
@@ -3484,44 +4521,88 @@ function heroExecuteAttack(pid) {
 }
 
 function enemyExecuteAttack(enemy) {
-  // Select random alive party member
-  const combatParty = state.population.filter(p => combatState.party.includes(p.id));
-  const alive = combatParty.filter(p => p.hp > 0);
-  if (alive.length === 0) return;
+  // Helper to safely deal damage to a specific hero, trigger flash, and handle focused redirection
+  const dealDmgToHero = (h, amount) => {
+    h.hp = Math.max(0, h.hp - amount);
+    
+    // Flash animation
+    const pEl = document.getElementById(`prof-${h.id}`);
+    pEl?.classList.add("attack-anim");
+    setTimeout(() => pEl?.classList.remove("attack-anim"), 150);
+
+    // Redirect targeting assistance focus if target died
+    if (h.id === combatState.focusedHeroId && h.hp <= 0) {
+      const combatParty = state.population.filter(p => combatState.party.includes(p.id));
+      const alive = combatParty.filter(p => p.hp > 0);
+      const remainingAlive = alive.filter(p => p.id !== h.id);
+      if (remainingAlive.length > 0) {
+        combatState.focusedHeroId = remainingAlive[0].id;
+        logBattle(`📣【戰場廣播】對焦英雄【${h.name}】不幸倒地！詠唱輔助轉移至【${remainingAlive[0].name}】！`, "log-item-atb");
+        updateHeroSheets();
+      } else {
+        combatState.focusedHeroId = null;
+      }
+    }
+  };
+
+  // Select smart target using range and Focus Fire AI
+  const candidates = getValidTargets('enemy', enemy.isRanged);
+  const target = pickBestTarget(candidates);
+  if (!target) return;
   
-  const target = alive[Math.floor(Math.random() * alive.length)];
   const eff = calcEffStats(target);
   
-  // Evade?
-  const evasionChance = Math.max(0, eff.evasion - ((enemy.hit||1.0) - 1.0)); // Enemies don't have hit stat yet, assume 1.0
+  // Boss Unique Skill Check (60% chance to execute signature skill for high-octane endgame)
+  if (enemy.isBoss && Math.random() < 0.6) {
+    if (enemy.id.includes("greed")) {
+      const rawDmg = Math.max(1, Math.floor((enemy.atk * 2.0) - eff.def));
+      const dmg = Math.max(1, Math.floor(rawDmg * (1 - (eff.pdr || 0)) * (1 - (eff.udr || 0))));
+      dealDmgToHero(target, dmg);
+      // Self heal 100% of damage
+      enemy.hp = Math.min(enemy.maxHp, enemy.hp + dmg);
+      logBattle(`👹【黃金暴食】${enemy.name} 吞噬 ${target.name} 造成 <b class="log-item-dmg">${dmg}</b> 粉碎傷害，並將生命轉化為巨獸體力 <span style="color:#10b981; font-weight:bold;">+${dmg} HP</span>！`, "log-item-dmg");
+      checkBattleResolution();
+      return;
+    } 
+    else if (enemy.id.includes("anger")) {
+      const aliveHeroes = state.population.filter(p => combatState.party.includes(p.id) && p.hp > 0);
+      logBattle(`🔥【地獄業火】${enemy.name} 仰天怒吼，引導熔岩洪流向我方全軍全域傾瀉！`, "log-item-dmg");
+      aliveHeroes.forEach(h => {
+        const hEff = calcEffStats(h);
+        const rawMDmg = Math.max(1, Math.floor((enemy.matk * 1.2) - hEff.mdef));
+        const mDmg = Math.max(1, Math.floor(rawMDmg * (1 - (hEff.mdr || 0)) * (1 - (hEff.udr || 0))));
+        dealDmgToHero(h, mDmg);
+        logBattle(`☄️ ${h.name} 遭受炙熱炎柱灼燒，受到 <b class="log-item-dmg">${mDmg}</b> 魔法傷害。`);
+      });
+      checkBattleResolution();
+      return;
+    } 
+    else if (enemy.id.includes("ignorance")) {
+      const rawMDmg = Math.max(1, Math.floor((enemy.matk * 1.5) - eff.mdef));
+      const mDmg = Math.max(1, Math.floor(rawMDmg * (1 - (eff.mdr || 0)) * (1 - (eff.udr || 0))));
+      dealDmgToHero(target, mDmg);
+      // ATB reduction mechanics
+      const drainVal = 40;
+      target.atb = Math.max(0, (target.atb || 0) - drainVal);
+      logBattle(`🦑【愚痴風暴】${enemy.name} 激起心智迷惘，${target.name} 遭受 <b class="log-item-dmg">${mDmg}</b> 精神衝擊，且時間序 (ATB) 被吸取 <span style="color:#f43f5e; font-weight:bold;">-${drainVal}%</span>！`, "log-item-dmg");
+      checkBattleResolution();
+      return;
+    }
+  }
+
+  // Standard attack - Evasion check
+  const evasionChance = Math.max(0, eff.evasion - ((enemy.hit||1.0) - 1.0));
   if (Math.random() < evasionChance) {
     logBattle(`👾 ${enemy.name} 攻擊 ${target.name}，被驚險地 <span style="color:#9ca3af;">Miss</span> 閃避了！`);
     return;
   }
 
-  const dmg = Math.max(1, enemy.atk - eff.def);
-  target.hp = Math.max(0, target.hp - dmg);
+  // Standard attack - Execution
+  const rawDmg = Math.max(1, enemy.atk - eff.def);
+  const dmg = Math.max(1, Math.floor(rawDmg * (1 - (eff.pdr || 0)) * (1 - (eff.udr || 0))));
+  dealDmgToHero(target, dmg);
   
-  // If the user-focused hero died, automatically shift control to the next alive hero
-  if (target.id === combatState.focusedHeroId && target.hp <= 0) {
-    const remainingAlive = alive.filter(p => p.id !== target.id);
-    if (remainingAlive.length > 0) {
-      combatState.focusedHeroId = remainingAlive[0].id;
-      logBattle(`📣【戰場廣播】對焦英雄【${target.name}】不幸倒地！詠唱輔助轉移至【${remainingAlive[0].name}】！`, "log-item-atb");
-      updateHeroSheets();
-    } else {
-      combatState.focusedHeroId = null;
-    }
-  }
-  
-  logBattle(`👾 ${enemy.name} 發動攻擊，${target.name} 受到 <b class="log-item-dmg">${dmg}</b> 傷害。`);
-
-  
-  // Flash animation
-  const pEl = document.getElementById(`prof-${target.id}`);
-  pEl?.classList.add("attack-anim");
-  setTimeout(() => pEl?.classList.remove("attack-anim"), 150);
-
+  logBattle(`👾 ${enemy.name} 發動物理打擊，${target.name} 受到 <b class="log-item-dmg">${dmg}</b> 傷害。`);
   checkBattleResolution();
 }
 
@@ -3572,7 +4653,7 @@ function checkBattleResolution() {
     else if (roll < 0.55) rKey = "magic";
     
     if (rKey) {
-      const lvl = Math.min(7, Math.ceil(totalExp / 20));
+      const lvl = Math.min(10, Math.ceil(totalExp / 20));
       
       // Check Auto-Sell settings
       if (state.autoSell && state.autoSell[rKey]) {
@@ -3595,6 +4676,20 @@ function checkBattleResolution() {
     
     // Auto next hunt if not boss
     if (combatState.target === "hunt" && combatState.active) {
+      const curLvl = combatState.huntLevel || 1;
+      if (curLvl >= 7) {
+        if (!state.huntGateCount) state.huntGateCount = 0;
+        state.huntGateCount++;
+        
+        if (state.huntGateCount >= 10) {
+          logBattle(`⚠️ 【自然學堂】高階副本討伐已達 10 次，觸發學術保護鎖，請完成自然問題以恢復自動掛機！`, "log-item-atb");
+          setTimeout(() => {
+            window.openExamModal(null, 'scienceHunt', null);
+          }, 1000);
+          return; // Force STOP spawning the next wave until solved!
+        }
+      }
+      
       setTimeout(() => {
         if (combatState.active) {
           spawnEnemy();
@@ -3606,11 +4701,11 @@ function checkBattleResolution() {
       
       // Sequential Level Unlock: If current boss level is defeated, advance it!
       const prevLevel = state.bossLevel || 1;
-      if (state.bossLevel < 3) {
+      if (state.bossLevel < 6) {
         state.bossLevel++;
         showToast(`🏆 討伐成就解鎖！下一階段挑戰已擴增至 Lv.${state.bossLevel}！`, "success");
       } else {
-        showToast("🏆 你已成功擊破終極試煉所有巨獸！城鎮的英雄們載歌載舞！", "success");
+        showToast("🏆 你已成功擊破終極試煉【Lv.6 滅絕境界】！城鎮的英雄們載歌載舞！", "success");
       }
       
       // Flag matching boss keys as defeated based on previous level
@@ -3723,6 +4818,9 @@ function bindResourceNode(el, resourceType) {
 
 bindResourceNode(nodeWood, 'wood');
 bindResourceNode(nodeStone, 'stone');
+if (nodeFood) bindResourceNode(nodeFood, 'food');
+if (nodeMetal) bindResourceNode(nodeMetal, 'metal');
+if (nodeMoney) bindResourceNode(nodeMoney, 'money');
 
 // Setup Building Card triggers
 
@@ -3748,6 +4846,68 @@ document.querySelectorAll(".opt-build-btn").forEach(btn => {
     const type = btn.getAttribute("data-type");
     constructBuilding(type);
   });
+});
+
+btnTechClickFood?.addEventListener("click", () => {
+  if (state.tech.clickFoodTech) return;
+  const tCfg = gameConfig.combat.tech.clickFoodTech;
+  if (state.knowledge >= tCfg.reqKnowledge && state.money >= tCfg.reqMoney) {
+    state.knowledge -= tCfg.reqKnowledge;
+    state.money -= tCfg.reqMoney;
+    state.tech.clickFoodTech = true;
+    spawnFloatingText("🎓 採集生存術已研發!", "#f472b6");
+    showToast("🍞 解鎖【採集生存術】！現在可以手動採集食物資源了！", "success");
+    updateUI();
+  } else {
+    showToast("❌ 研究知識或金幣不足！", "error");
+  }
+});
+
+btnTechClickMetal?.addEventListener("click", () => {
+  if (state.tech.clickMetalTech || !state.tech.clickFoodTech) return;
+  const tCfg = gameConfig.combat.tech.clickMetalTech;
+  if (state.knowledge >= tCfg.reqKnowledge && state.money >= tCfg.reqMoney) {
+    state.knowledge -= tCfg.reqKnowledge;
+    state.money -= tCfg.reqMoney;
+    state.tech.clickMetalTech = true;
+    spawnFloatingText("🎓 初級淘金法已研發!", "#fbbf24");
+    showToast("🪙 解鎖【初級淘金法】！現在可以手動採集金屬資源了！", "success");
+    updateUI();
+  } else {
+    showToast("❌ 研究知識或金幣不足！", "error");
+  }
+});
+
+btnTechClickMoney?.addEventListener("click", () => {
+  if (state.tech.clickMoneyTech || !state.tech.clickMetalTech) return;
+  const tCfg = gameConfig.combat.tech.clickMoneyTech;
+  if (state.knowledge >= tCfg.reqKnowledge && state.money >= tCfg.reqMoney) {
+    state.knowledge -= tCfg.reqKnowledge;
+    state.money -= tCfg.reqMoney;
+    state.tech.clickMoneyTech = true;
+    spawnFloatingText("🎓 鑄幣許可權已研發!", "#eab308");
+    showToast("💰 解鎖【鑄幣許可權】！現在可以手動賺取金幣了！", "success");
+    updateUI();
+  } else {
+    showToast("❌ 研究知識或金幣不足！", "error");
+  }
+});
+
+btnTechDoubleClick?.addEventListener("click", () => {
+  if (state.tech.doubleClickTech || !state.tech.clickMoneyTech) return;
+  const tCfg = gameConfig.combat.tech.doubleClickTech;
+  const reqE = tCfg.reqEnergy || 0;
+  if (state.knowledge >= tCfg.reqKnowledge && state.money >= tCfg.reqMoney && state.energy >= reqE) {
+    state.knowledge -= tCfg.reqKnowledge;
+    state.money -= tCfg.reqMoney;
+    state.energy -= reqE;
+    state.tech.doubleClickTech = true;
+    spawnFloatingText("🎓 神經增幅模組已研發!", "#eab308");
+    showToast("⚡ 解鎖【神經增幅模組】！所有手動點擊資源的效率翻倍！", "success");
+    updateUI();
+  } else {
+    showToast("❌ 研究知識、金幣或電力不足！", "error");
+  }
 });
 
 btnTechHero?.addEventListener("click", () => {
@@ -4022,182 +5182,144 @@ let lastVideoTime = -1;
 let results = undefined;
 
 let chantState = {
-  skill1: 0, // index shake
-  skill2: 0, // scissors shake
-  skill3: 0, // scissor-rock alternate
-  skill4: 0, // rock-paper alternate
+  currentSequence: [], // Array of recorded stable gestures (max 6)
+  lastAddedGesture: null, // Track previous committed gesture to enforce alternating transitions
   
-  s1LastX: null,
-  s1Direction: 0, // 0: idle, -1: left, 1: right
+  // Debouncer parameters to filter out single-frame flicker
+  lastFrameRawGesture: null, 
+  stableFramesCount: 0,
   
-  s2LastX: null,
-  s2Direction: 0,
-  
-  s3LastGesture: null,
-  s4LastGesture: null,
-  
+  lastGestureTime: Date.now(), // For idle inactivity timeout
   lastUpdateTime: Date.now()
 };
 
-const SHAKE_DIST_THRESHOLD = 0.04; // Normalized distance trigger (~25px on 640 width)
-
 function resetChantState() {
-  chantState.skill1 = 0;
-  chantState.skill2 = 0;
-  chantState.skill3 = 0;
-  chantState.skill4 = 0;
-  chantState.s1LastX = null;
-  chantState.s1Direction = 0;
-  chantState.s2LastX = null;
-  chantState.s2Direction = 0;
-  chantState.s3LastGesture = null;
-  chantState.s4LastGesture = null;
+  chantState.currentSequence = [];
+  chantState.lastAddedGesture = null;
+  chantState.lastFrameRawGesture = null;
+  chantState.stableFramesCount = 0;
+  chantState.lastGestureTime = Date.now();
+  chantState.lastUpdateTime = Date.now();
+}
+
+function getDistance(p1, p2) {
+  return Math.sqrt(
+    Math.pow(p1.x - p2.x, 2) + 
+    Math.pow(p1.y - p2.y, 2) + 
+    Math.pow(p1.z - p2.z, 2)
+  );
 }
 
 function classifyHand(landmarks) {
-  // Compare fingertips (Tip.y) to the knuckle joints (PIP.y)
-  // Image top is Y=0, bottom is Y=1. Finger extended = Tip.y < PIP.y.
-  const indexExtended = landmarks[8].y < landmarks[6].y;
-  const middleExtended = landmarks[12].y < landmarks[10].y;
-  const ringExtended = landmarks[16].y < landmarks[14].y;
-  const pinkyExtended = landmarks[20].y < landmarks[18].y;
+  const wrist = landmarks[0];
+  
+  // Distance comparison from finger tip to wrist VS knuckle base (MCP) to wrist
+  // If tip-to-wrist distance > knuckle-to-wrist * 1.23, the finger is extended
+  const isExtended = (tipIdx, mcpIdx) => {
+    const tipDist = getDistance(landmarks[tipIdx], wrist);
+    const mcpDist = getDistance(landmarks[mcpIdx], wrist);
+    return tipDist > (mcpDist * 1.23); // Ratio multiplier (~1.20 - 1.25) is highly stable
+  };
 
-  if (indexExtended && !middleExtended && !ringExtended && !pinkyExtended) {
-    return "INDEX";
-  } else if (indexExtended && middleExtended && !ringExtended && !pinkyExtended) {
-    return "SCISSORS";
-  } else if (!indexExtended && !middleExtended && !ringExtended && !pinkyExtended) {
+  const indexExtended = isExtended(8, 5);
+  const middleExtended = isExtended(12, 9);
+  const ringExtended = isExtended(16, 13);
+  const pinkyExtended = isExtended(20, 17);
+
+  // Determine Gesture
+  if (!indexExtended && !middleExtended && !ringExtended && !pinkyExtended) {
     return "ROCK";
   } else if (indexExtended && middleExtended && ringExtended && pinkyExtended) {
     return "PAPER";
+  } else if (indexExtended && middleExtended && !ringExtended && !pinkyExtended) {
+    return "SCISSORS";
+  } else if (indexExtended && !middleExtended && !ringExtended && !pinkyExtended) {
+    return "INDEX";
   }
+  
   return "OTHER";
 }
 
 // Core Spell Chanting Processor
-function processHandSpell(landmarks) {
-  const gesture = classifyHand(landmarks);
-  const wristX = landmarks[0].x; // Track movement centering around the wrist x position
+function checkSequenceResult() {
+  const seq = chantState.currentSequence.join(",");
   
-  chantState.lastUpdateTime = Date.now();
+  const balancedSeq = "SCISSORS,ROCK,PAPER,SCISSORS,ROCK,PAPER";
+  const defensiveSeq = "ROCK,PAPER,ROCK,PAPER,ROCK,PAPER";
+  const offensiveSeq = "SCISSORS,PAPER,SCISSORS,PAPER,SCISSORS,PAPER";
+  
+  // Visual Flash Function
+  const flashBg = (color) => {
+    const view = document.getElementById("combatViewport");
+    if (view) {
+      const orig = view.style.boxShadow;
+      view.style.transition = "box-shadow 0.3s ease";
+      view.style.boxShadow = `inset 0 0 60px ${color}`;
+      setTimeout(() => { view.style.boxShadow = orig; }, 1000);
+    }
+  };
 
-  if (gesture === "INDEX") {
-    // 1. Track Index Shake
-    if (chantState.s1LastX === null) {
-      chantState.s1LastX = wristX;
-    } else {
-      const diff = wristX - chantState.s1LastX;
-      if (chantState.s1Direction === 0) {
-        if (Math.abs(diff) > SHAKE_DIST_THRESHOLD) {
-          chantState.s1Direction = diff > 0 ? 1 : -1;
-          chantState.skill1++;
-          chantState.s1LastX = wristX;
-        }
-      } else if (chantState.s1Direction === 1 && diff < -SHAKE_DIST_THRESHOLD) {
-        chantState.s1Direction = -1;
-        chantState.skill1++;
-        chantState.s1LastX = wristX;
-      } else if (chantState.s1Direction === -1 && diff > SHAKE_DIST_THRESHOLD) {
-        chantState.s1Direction = 1;
-        chantState.skill1++;
-        chantState.s1LastX = wristX;
-      }
-    }
-    
-    // Reset unrelated chanting processes
-    chantState.skill2 = 0; chantState.skill3 = 0; chantState.skill4 = 0;
-    chantState.s2LastX = null; chantState.s2Direction = 0;
-    chantState.s3LastGesture = null; chantState.s4LastGesture = null;
-    
-  } else if (gesture === "SCISSORS") {
-    // 2. Track Scissors Shake
-    if (chantState.s2LastX === null) {
-      chantState.s2LastX = wristX;
-    } else {
-      const diff = wristX - chantState.s2LastX;
-      if (chantState.s2Direction === 0) {
-        if (Math.abs(diff) > SHAKE_DIST_THRESHOLD) {
-          chantState.s2Direction = diff > 0 ? 1 : -1;
-          chantState.skill2++;
-          chantState.s2LastX = wristX;
-        }
-      } else if (chantState.s2Direction === 1 && diff < -SHAKE_DIST_THRESHOLD) {
-        chantState.s2Direction = -1;
-        chantState.skill2++;
-        chantState.s2LastX = wristX;
-      } else if (chantState.s2Direction === -1 && diff > SHAKE_DIST_THRESHOLD) {
-        chantState.s2Direction = 1;
-        chantState.skill2++;
-        chantState.s2LastX = wristX;
-      }
-    }
-    
-    // 3. Track Scissors ↔ Rock Alternate
-    if (chantState.s3LastGesture === null) {
-      chantState.s3LastGesture = "SCISSORS";
-    } else if (chantState.s3LastGesture === "ROCK") {
-      chantState.s3LastGesture = "SCISSORS";
-      chantState.skill3++;
-    }
-    
-    // Reset incompatible systems
-    chantState.skill1 = 0; chantState.skill4 = 0;
-    chantState.s1LastX = null; chantState.s1Direction = 0;
-    chantState.s4LastGesture = null;
-    
-  } else if (gesture === "ROCK") {
-    // 3. Track Scissors ↔ Rock Alternate
-    if (chantState.s3LastGesture === null) {
-      chantState.s3LastGesture = "ROCK";
-    } else if (chantState.s3LastGesture === "SCISSORS") {
-      chantState.s3LastGesture = "ROCK";
-      chantState.skill3++;
-    }
-    
-    // 4. Track Rock ↔ Paper Alternate
-    if (chantState.s4LastGesture === null) {
-      chantState.s4LastGesture = "ROCK";
-    } else if (chantState.s4LastGesture === "PAPER") {
-      chantState.s4LastGesture = "ROCK";
-      chantState.skill4++;
-    }
-    
-    // Reset incompatible
-    chantState.skill1 = 0; chantState.skill2 = 0;
-    chantState.s1LastX = null; chantState.s1Direction = 0;
-    chantState.s2LastX = null; chantState.s2Direction = 0;
-    
-  } else if (gesture === "PAPER") {
-    // 4. Track Rock ↔ Paper Alternate
-    if (chantState.s4LastGesture === null) {
-      chantState.s4LastGesture = "PAPER";
-    } else if (chantState.s4LastGesture === "ROCK") {
-      chantState.s4LastGesture = "PAPER";
-      chantState.skill4++;
-    }
-    
-    // Reset incompatible
-    chantState.skill1 = 0; chantState.skill2 = 0; chantState.skill3 = 0;
-    chantState.s1LastX = null; chantState.s1Direction = 0;
-    chantState.s2LastX = null; chantState.s2Direction = 0;
-    chantState.s3LastGesture = null;
+  if (seq === balancedSeq) {
+    combatState.aiMode = 'balanced';
+    logBattle(`✨⚖️ 結印成功！【平衡戰術 AI】引導充能完成！✨`, "log-item-buff");
+    showToast("⚖️ 手勢判定：啟動平衡智能模式！", "info");
+    spawnFloatingText("✨ AI BALANCED ✨", "#60a5fa");
+    flashBg("rgba(96, 165, 250, 0.6)");
+  } else if (seq === defensiveSeq) {
+    combatState.aiMode = 'defensive';
+    logBattle(`✨🛡️ 結印成功！【守護防衛 AI】堅實屏障構築！✨`, "log-item-buff");
+    showToast("🛡️ 手勢判定：啟動守護智能模式！", "info");
+    spawnFloatingText("🛡️ AI DEFENSIVE 🛡️", "#34d399");
+    flashBg("rgba(52, 211, 153, 0.6)");
+  } else if (seq === offensiveSeq) {
+    combatState.aiMode = 'offensive';
+    logBattle(`✨⚔️ 結印成功！【強攻狂暴 AI】狂熱怒火點燃！✨`, "log-item-buff");
+    showToast("⚔️ 手勢判定：啟動強攻智能模式！", "info");
+    spawnFloatingText("🔥 AI OFFENSIVE 🔥", "#f87171");
+    flashBg("rgba(248, 113, 113, 0.6)");
   } else {
-    // Unrecognized gesture (OTHER) - optionally slightly decays but we let the 2s stale timer handle full resets.
+    logBattle(`❌ 結印失敗：序列不符，凝結的魔力潰散。`, "log-item-dmg");
+    showToast("❌ 結印序列錯誤，請重新開始！", "error");
+    spawnFloatingText("❌ CHANT FAILED ❌", "#ef4444");
+    flashBg("rgba(239, 68, 68, 0.5)");
   }
   
-  // Spell Activation Phase!
-  if (chantState.skill1 >= 3) {
-    castSkill1();
-    resetChantState();
-  } else if (chantState.skill2 >= 4) {
-    castSkill2();
-    resetChantState();
-  } else if (chantState.skill3 >= 4) {
-    castSkill3();
-    resetChantState();
-  } else if (chantState.skill4 >= 6) {
-    castSkill4();
-    resetChantState();
+  updateAiModeUI();
+  resetChantState();
+}
+
+function processHandSpell(landmarks) {
+  const gesture = classifyHand(landmarks);
+  chantState.lastUpdateTime = Date.now();
+
+  // --- DEBOUNCING LAYER ---
+  if (gesture === chantState.lastFrameRawGesture) {
+    chantState.stableFramesCount++;
+  } else {
+    chantState.lastFrameRawGesture = gesture;
+    chantState.stableFramesCount = 1;
+  }
+
+  const DEBOUNCE_FRAMES = 4;
+  
+  if (chantState.stableFramesCount === DEBOUNCE_FRAMES) {
+    const stableGesture = gesture;
+    
+    if (stableGesture !== "OTHER" && stableGesture !== chantState.lastAddedGesture) {
+      chantState.currentSequence.push(stableGesture);
+      chantState.lastAddedGesture = stableGesture;
+      chantState.lastGestureTime = Date.now(); // Update inactivity timer!
+      
+      const len = chantState.currentSequence.length;
+      const emojiMap = { "ROCK":"✊", "PAPER":"✋", "SCISSORS":"✌️", "INDEX":"☝️" };
+      const icon = emojiMap[stableGesture] || "❔";
+      logBattle(`🔮 結印印記記錄：[ ${icon} ${stableGesture} ] (${len}/6)`);
+      spawnFloatingText(`${icon} ${len}/6`, "#c084fc");
+
+      if (len === 6) {
+        checkSequenceResult();
+      }
+    }
   }
 
   updateChantUI();
@@ -4336,82 +5458,91 @@ function castSkill4() {
 function initSkillGrid() {
   const grid = document.getElementById("gestureSkillGrid");
   if (!grid) return;
+  
   grid.innerHTML = `
-    <div class="skill-chant-item" id="chant-skill-1">
-      <div class="chant-info">
-        <span class="chant-name">🛡️ 回復 (食指晃x3)</span>
-        <span class="chant-count" id="chant-val-1">0/3</span>
+    <div style="background: rgba(15, 11, 28, 0.6); border: 1px solid rgba(168, 85, 247, 0.35); padding: 0.9rem; border-radius: 14px; width: 100%; backdrop-filter: blur(8px); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+      <div style="font-weight: 800; font-size: 0.88rem; color: #c084fc; margin-bottom: 0.6rem; display:flex; justify-content:space-between; text-shadow: 0 0 8px rgba(168,85,247,0.4);">
+        <span style="display:flex; align-items:center; gap:5px;">🔮 元素結印軌跡 (Trajectory)</span>
+        <span id="chant-seq-len" style="font-family: monospace; color:#e9d5ff; background:rgba(168,85,247,0.2); padding: 1px 6px; border-radius:4px;">0 / 6</span>
       </div>
-      <div class="chant-bar-wrapper"><div class="chant-bar-fill" id="chant-bar-1" style="width:0%"></div></div>
-    </div>
-    <div class="skill-chant-item" id="chant-skill-2">
-      <div class="chant-info">
-        <span class="chant-name">⚡ 魔彈 (剪刀晃x4)</span>
-        <span class="chant-count" id="chant-val-2">0/4</span>
+      
+      <!-- Sequence Slot Array -->
+      <div id="gesture-slots-container" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.4rem; margin-bottom: 1rem;">
+        <div class="gesture-slot" id="slot-0" style="aspect-ratio:1; background:rgba(255,255,255,0.04); border:1px dashed rgba(255,255,255,0.15); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; color:rgba(255,255,255,0.3); transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);">❔</div>
+        <div class="gesture-slot" id="slot-1" style="aspect-ratio:1; background:rgba(255,255,255,0.04); border:1px dashed rgba(255,255,255,0.15); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; color:rgba(255,255,255,0.3); transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);">❔</div>
+        <div class="gesture-slot" id="slot-2" style="aspect-ratio:1; background:rgba(255,255,255,0.04); border:1px dashed rgba(255,255,255,0.15); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; color:rgba(255,255,255,0.3); transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);">❔</div>
+        <div class="gesture-slot" id="slot-3" style="aspect-ratio:1; background:rgba(255,255,255,0.04); border:1px dashed rgba(255,255,255,0.15); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; color:rgba(255,255,255,0.3); transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);">❔</div>
+        <div class="gesture-slot" id="slot-4" style="aspect-ratio:1; background:rgba(255,255,255,0.04); border:1px dashed rgba(255,255,255,0.15); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; color:rgba(255,255,255,0.3); transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);">❔</div>
+        <div class="gesture-slot" id="slot-5" style="aspect-ratio:1; background:rgba(255,255,255,0.04); border:1px dashed rgba(255,255,255,0.15); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; color:rgba(255,255,255,0.3); transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);">❔</div>
       </div>
-      <div class="chant-bar-wrapper"><div class="chant-bar-fill" id="chant-bar-2" style="width:0%"></div></div>
-    </div>
-    <div class="skill-chant-item" id="chant-skill-3">
-      <div class="chant-info">
-        <span class="chant-name">🔥 烈焰 (剪刀↔拳x4)</span>
-        <span class="chant-count" id="chant-val-3">0/4</span>
+      
+      <!-- AI Recipe Cheatsheet -->
+      <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 0.6rem;">
+        <div style="font-size: 0.7rem; color: #94a3b8; margin-bottom: 0.5rem; text-transform:uppercase; font-weight:700; letter-spacing:0.05em;">📜 戰術法陣秘籍 (Recipes)</div>
+        <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.78rem; color: #cbd5e1;">
+          <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:3px 6px; border-radius:4px;">
+            <span style="display:flex; align-items:center; gap:4px;">⚖️ <b style="color:#60a5fa;">平衡 AI</b></span>
+            <span style="font-size:0.85rem; letter-spacing:2px;">✌️✊✋✌️✊✋</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:3px 6px; border-radius:4px;">
+            <span style="display:flex; align-items:center; gap:4px;">🛡️ <b style="color:#34d399;">守護 AI</b></span>
+            <span style="font-size:0.85rem; letter-spacing:2px;">✊✋✊✋✊✋</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:3px 6px; border-radius:4px;">
+            <span style="display:flex; align-items:center; gap:4px;">⚔️ <b style="color:#f87171;">強攻 AI</b></span>
+            <span style="font-size:0.85rem; letter-spacing:2px;">✌️✋✌️✋✌️✋</span>
+          </div>
+        </div>
       </div>
-      <div class="chant-bar-wrapper"><div class="chant-bar-fill" id="chant-bar-3" style="width:0%"></div></div>
-    </div>
-    <div class="skill-chant-item" id="chant-skill-4">
-      <div class="chant-info">
-        <span class="chant-name">💥 天譴 (拳↔布x6)</span>
-        <span class="chant-count" id="chant-val-4">0/6</span>
-      </div>
-      <div class="chant-bar-wrapper"><div class="chant-bar-fill" id="chant-bar-4" style="width:0%"></div></div>
     </div>
   `;
 }
 
 function updateChantUI() {
-  const fill1 = document.getElementById("chant-bar-1");
-  const val1 = document.getElementById("chant-val-1");
-  const fill2 = document.getElementById("chant-bar-2");
-  const val2 = document.getElementById("chant-val-2");
-  const fill3 = document.getElementById("chant-bar-3");
-  const val3 = document.getElementById("chant-val-3");
-  const fill4 = document.getElementById("chant-bar-4");
-  const val4 = document.getElementById("chant-val-4");
+  const currentLen = chantState.currentSequence.length;
+  const lenDisplay = document.getElementById("chant-seq-len");
+  if (lenDisplay) lenDisplay.textContent = `${currentLen} / 6`;
 
-  if (fill1) fill1.style.width = `${(chantState.skill1 / 3) * 100}%`;
-  if (val1) val1.textContent = `${chantState.skill1}/3`;
-  const el1 = document.getElementById("chant-skill-1");
-  if (el1) el1.classList.toggle("active-chanting", chantState.skill1 > 0);
-
-  if (fill2) fill2.style.width = `${(chantState.skill2 / 4) * 100}%`;
-  if (val2) val2.textContent = `${chantState.skill2}/4`;
-  const el2 = document.getElementById("chant-skill-2");
-  if (el2) el2.classList.toggle("active-chanting", chantState.skill2 > 0);
-
-  if (fill3) fill3.style.width = `${(chantState.skill3 / 4) * 100}%`;
-  if (val3) val3.textContent = `${chantState.skill3}/4`;
-  const el3 = document.getElementById("chant-skill-3");
-  if (el3) el3.classList.toggle("active-chanting", chantState.skill3 > 0);
-
-  if (fill4) fill4.style.width = `${(chantState.skill4 / 6) * 100}%`;
-  if (val4) val4.textContent = `${chantState.skill4}/6`;
-  const el4 = document.getElementById("chant-skill-4");
-  if (el4) el4.classList.toggle("active-chanting", chantState.skill4 > 0);
-
-  // Find global peak progress for AI panel
-  const maxProgress = Math.max(
-    chantState.skill1 / 3,
-    chantState.skill2 / 4,
-    chantState.skill3 / 4,
-    chantState.skill4 / 6
-  );
+  const emojiMap = { "ROCK": "✊", "PAPER": "✋", "SCISSORS": "✌️", "INDEX": "☝️" };
   
-  if (velocityBar) {
-    velocityBar.style.width = `${maxProgress * 100}%`;
-    if (maxProgress >= 1.0) {
-      velocityBar.style.backgroundColor = "#ffffff";
-      setTimeout(() => velocityBar.style.backgroundColor = "", 150);
+  for (let i = 0; i < 6; i++) {
+    const slot = document.getElementById(`slot-${i}`);
+    if (!slot) continue;
+    
+    if (i < currentLen) {
+      const gesture = chantState.currentSequence[i];
+      const icon = emojiMap[gesture] || "❓";
+      
+      if (slot.textContent !== icon) {
+        slot.textContent = icon;
+        slot.style.background = "rgba(168, 85, 247, 0.28)";
+        slot.style.border = "1px solid rgba(192, 132, 252, 0.7)";
+        slot.style.color = "#ffffff";
+        slot.style.boxShadow = "0 0 12px rgba(168, 85, 247, 0.5)";
+        
+        // Fire an explosive elastic scale pop
+        slot.style.transform = "scale(1.25) rotate(6deg)";
+        setTimeout(() => {
+          slot.style.transform = "scale(1) rotate(0deg)";
+        }, 250);
+      }
+    } else {
+      // Empty slot
+      if (slot.textContent !== "❔") {
+        slot.textContent = "❔";
+        slot.style.background = "rgba(255, 255, 255, 0.04)";
+        slot.style.border = "1px dashed rgba(255, 255, 255, 0.15)";
+        slot.style.color = "rgba(255, 255, 255, 0.3)";
+        slot.style.boxShadow = "none";
+        slot.style.transform = "scale(1)";
+      }
     }
+  }
+
+  const velocityBar = document.getElementById("mediaVelocityBar");
+  if (velocityBar) {
+    const progress = currentLen / 6;
+    velocityBar.style.width = `${progress * 100}%`;
   }
 }
 
@@ -4493,11 +5624,18 @@ async function predictLoop() {
     processHandSpell(currentHand);
     drawOverlay(currentHand);
   } else {
-    // Stale reset: reset if no hands detected for 2 seconds
-    if (Date.now() - chantState.lastUpdateTime > 2000) {
+    // 1. Stale reset: reset if no hands are detected for 2 seconds
+    if (Date.now() - chantState.lastUpdateTime > 2000 && (chantState.currentSequence.length > 0 || chantState.lastAddedGesture)) {
       resetChantState();
       updateChantUI();
     }
+  }
+  
+  // 2. Inactivity timeout: if user stays idle on same gesture for 4 seconds, decay sequence
+  if (chantState.currentSequence.length > 0 && Date.now() - chantState.lastGestureTime > 4000) {
+    logBattle("🕯️ 結印中斷：凝聚的元素散佚，法印消散了。");
+    resetChantState();
+    updateChantUI();
   }
   
   requestAnimationFrame(predictLoop);
@@ -4557,6 +5695,7 @@ function initInventoryControls() {
 // Init on DOM load
 window.addEventListener("DOMContentLoaded", () => {
   initInventoryControls();
+  updateAiModeUI();
   updateUI();
   updateLevelSelectors();
   initSkillGrid();
