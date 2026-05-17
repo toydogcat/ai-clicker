@@ -1981,7 +1981,7 @@ window.formatNumberShort = function(num, decimals = 1) {
 
 // Calculate needed EXP for next level based on planned gaps
 window.getReqExp = function(lvl) {
-  const expGaps = [0, 100, 205, 300, 419, 563, 728, 916, 1122, 1347];
+  const expGaps = [0, 180, 380, 600, 900, 1350, 1900, 2600, 3500, 4600];
   return expGaps[lvl] || 999999;
 };
 
